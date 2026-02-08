@@ -1,0 +1,65 @@
+# NEXUS AI — Agentic Workflow Infrastructure
+# Core
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.10.0
+pydantic-settings>=2.7.0
+python-dotenv>=1.0.0
+httpx>=0.28.0
+aiohttp>=3.11.0
+asyncio-throttle>=1.0.2
+
+# Agent Orchestration
+networkx>=3.4.0           # DAG-based agent graph
+celery[redis]>=5.4.0      # Distributed task queue
+redis>=5.2.0              # State + caching + pub/sub
+kombu>=5.4.0              # Message transport
+
+# LLM Integrations
+anthropic>=0.40.0         # Claude API
+openai>=1.57.0            # OpenAI-compatible endpoints (Kimi, Ollama)
+ollama>=0.4.0             # Ollama Python client
+tiktoken>=0.8.0           # Token counting
+tokenizers>=0.21.0        # HuggingFace tokenizers
+
+# Website Builder
+jinja2>=3.1.0             # Template engine
+beautifulsoup4>=4.12.0    # HTML parsing
+cssutils>=2.11.0          # CSS generation
+markdown>=3.7.0           # Markdown processing
+pygments>=2.18.0          # Code highlighting
+
+# Database + Storage
+sqlalchemy>=2.0.36        # ORM
+alembic>=1.14.0           # DB migrations
+asyncpg>=0.30.0           # PostgreSQL async driver
+aiosqlite>=0.20.0         # SQLite for dev
+boto3>=1.35.0             # S3 storage
+
+# Analytics + ML
+pandas>=2.2.0             # Data processing
+numpy>=2.1.0              # Numerical computing
+scikit-learn>=1.6.0       # ML models for growth prediction
+plotly>=5.24.0            # Interactive charts
+prophet>=1.1.6            # Time series forecasting
+
+# Web Scraping + Research
+playwright>=1.49.0        # Browser automation
+trafilatura>=1.12.0       # Web content extraction
+feedparser>=6.0.0         # RSS feed parsing
+
+# Security + Auth
+python-jose[cryptography]>=3.3.0  # JWT
+passlib[bcrypt]>=1.7.4    # Password hashing
+python-multipart>=0.0.17  # Form data
+
+# Monitoring
+prometheus-client>=0.21.0 # Metrics
+structlog>=24.4.0         # Structured logging
+rich>=13.9.0              # Rich console output
+
+# Testing
+pytest>=8.3.0
+pytest-asyncio>=0.24.0
+pytest-cov>=6.0.0
+httpx>=0.28.0             # Test client

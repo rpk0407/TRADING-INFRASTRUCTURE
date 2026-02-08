@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  # ─── NEXUS API Server ───
+  nexus-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - NEXUS_ENV=production
+      - NEXUS_DEBUG=false
+      - DATABASE_URL=postgresql+asyncpg://nexus:nexus@postgres:5432/nexus
+      - REDIS_URL=redis://redis:6379/0
+      - OLLAMA_URL=http://ollama:11434
+      - KIMI_LOCAL_URL=http://kimi:8080/v1
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - ./output:/app/output
+      - ./storage:/app/storage
+    restart: unless-stopped
+
+  # ─── Redis — State & Cache ───
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # ─── PostgreSQL — Persistent Storage ───
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: nexus
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: nexus
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # ─── Ollama — Local LLM Server ───
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  postgres_data:
+  ollama_data:
