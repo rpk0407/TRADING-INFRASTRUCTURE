@@ -83,6 +83,9 @@ class WebsiteBuilderAgent(BaseAgent):
             client_id, structure, pages, styles, components
         )
 
+        # Step 6b: Validate generated code for syntax errors
+        validation = await self._validate_generated_code(pages, components)
+
         # Step 7: Learn from this generation
         await self.learn(client_id, {
             "type": "website_generated",
@@ -98,7 +101,8 @@ class WebsiteBuilderAgent(BaseAgent):
             "site_plan": site_plan,
             "pages_generated": len(pages),
             "components_generated": len(components),
-            "deployment_ready": True,
+            "validation": validation,
+            "deployment_ready": validation.get("all_valid", False),
         }
 
     async def _plan_website(self, params: dict, memory: dict) -> dict:
@@ -214,9 +218,8 @@ Requirements:
 
 Return ONLY the code, no markdown fences."""
 
-            code = await self.think(
+            code = await self.think_code(
                 prompt=prompt,
-                task_type="code_generation",
                 system_prompt=WEBSITE_SYSTEM_PROMPT,
                 max_tokens=4096,
                 temperature=0.6,
@@ -270,9 +273,8 @@ Requirements:
 
 Return ONLY the TypeScript/React code, no markdown."""
 
-            code = await self.think(
+            code = await self.think_code(
                 prompt=prompt,
-                task_type="code_generation",
                 system_prompt=WEBSITE_SYSTEM_PROMPT,
                 max_tokens=2048,
                 temperature=0.6,
@@ -352,3 +354,44 @@ Return ONLY the TypeScript/React code, no markdown."""
             components=len(components),
         )
         return output_dir
+
+    async def _validate_generated_code(
+        self, pages: dict[str, str], components: dict[str, str]
+    ) -> dict:
+        """Validate generated JS/TS code for syntax errors using the code executor."""
+        validation_results = {"pages": {}, "components": {}, "all_valid": True}
+
+        all_files = {**{f"page:{k}": v for k, v in pages.items()},
+                     **{f"component:{k}": v for k, v in components.items()}}
+
+        for label, code in all_files.items():
+            # Use the executor to run a quick syntax check via Node.js
+            check_script = (
+                "const code = " + json.dumps(code) + ";\n"
+                "try {\n"
+                "  new Function(code);\n"
+                "  console.log(JSON.stringify({valid: true}));\n"
+                "} catch(e) {\n"
+                "  console.log(JSON.stringify({valid: false, error: e.message}));\n"
+                "}"
+            )
+            result = await self.executor.execute(check_script, language="javascript")
+            category, name = label.split(":", 1)
+            bucket = "pages" if category == "page" else "components"
+            try:
+                parsed = json.loads(result.get("stdout", "{}"))
+                validation_results[bucket][name] = parsed
+                if not parsed.get("valid", False):
+                    validation_results["all_valid"] = False
+            except json.JSONDecodeError:
+                validation_results[bucket][name] = {
+                    "valid": False,
+                    "error": result.get("stderr", "unknown error"),
+                }
+                validation_results["all_valid"] = False
+
+        logger.info(
+            "website_builder.validation_complete",
+            all_valid=validation_results["all_valid"],
+        )
+        return validation_results

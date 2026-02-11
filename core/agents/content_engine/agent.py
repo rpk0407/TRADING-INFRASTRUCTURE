@@ -202,13 +202,28 @@ Return JSON array: ["topic1", "topic2", ...]"""
             except json.JSONDecodeError:
                 topics = ["Industry Trends", "How-To Guide", "Case Study"]
 
+        # Research: scrape reference URLs if provided for deeper topic insights
+        research_urls = params.get("research_urls", [])
+        research_data = []
+        if research_urls:
+            fetched = await self.scraper.fetch_multiple(research_urls, extract_mode="text")
+            for page in fetched:
+                research_data.append({
+                    "url": page.get("url"),
+                    "title": page.get("title"),
+                    "snippet": (page.get("text", "") or "")[:500],
+                })
+
         posts = []
         for topic in topics[:3]:
+            # Find topic-relevant research snippets
+            topic_research = [r for r in research_data if topic.lower() in (r.get("title", "") or "").lower() or topic.lower() in (r.get("snippet", "") or "").lower()]
             prompt = f"""Write a comprehensive, SEO-optimized blog post about: {topic}
 
 Business: {params.get('business_name', '')}
 Brand Voice: {json.dumps(brand_voice) if brand_voice else 'professional'}
 Target Length: 1500-2000 words
+Research Data: {json.dumps(topic_research) if topic_research else json.dumps(research_data[:2]) if research_data else 'none available'}
 
 Return JSON:
 {{
@@ -221,16 +236,18 @@ Return JSON:
     "internal_links_suggested": ["topic1", "topic2"]
 }}"""
 
-            response = await self.think(
+            result = await self.think_with_reflection(
                 prompt=prompt,
+                task_description=f"Write a high-quality SEO blog post about: {topic}",
                 task_type="content_final",
                 system_prompt=CONTENT_SYSTEM_PROMPT,
-                max_tokens=4096,
+                quality_threshold=75,
             )
+            final_content = result.get("final_output", result.get("original_output", ""))
             try:
-                posts.append(json.loads(response))
+                posts.append(json.loads(final_content))
             except json.JSONDecodeError:
-                posts.append({"title": topic, "content": response})
+                posts.append({"title": topic, "content": final_content})
 
         return posts
 

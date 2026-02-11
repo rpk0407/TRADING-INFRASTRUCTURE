@@ -105,11 +105,27 @@ class MarketingAgent(BaseAgent):
         }
 
     async def _analyze_competitors(self, params: dict, memory: dict) -> list[dict]:
+        # Scrape real competitor websites for marketing intelligence
+        competitor_urls = params.get("competitor_urls", [])
+        scraped_competitors = []
+        if competitor_urls:
+            pages = await self.scraper.fetch_multiple(competitor_urls, extract_mode="full")
+            for page in pages:
+                scraped_competitors.append({
+                    "url": page.get("url"),
+                    "title": page.get("title"),
+                    "meta": page.get("metadata", {}),
+                    "headings": page.get("headings", []),
+                    "snippet": (page.get("text", "") or "")[:600],
+                })
+            logger.info("marketing_agent.competitors_scraped", count=len(scraped_competitors))
+
         prompt = f"""Analyze the competitive landscape for:
 
 Business: {params.get('business_name', '')}
 Industry: {params.get('industry', '')}
 Competitors: {params.get('competitors', ['analyze top 5 in this space'])}
+Scraped Competitor Data: {json.dumps(scraped_competitors) if scraped_competitors else 'no live data available'}
 
 Return JSON array:
 [{{

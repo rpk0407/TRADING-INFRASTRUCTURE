@@ -213,13 +213,18 @@ Return JSON:
     "reporting_metrics": ["metric1", "metric2"]
 }}"""
 
-        response = await self.think(
-            prompt=prompt, task_type="planning", system_prompt=CRM_SYSTEM_PROMPT
+        result = await self.think_with_reflection(
+            prompt=prompt,
+            task_description=f"Design a high-quality sales pipeline for {params.get('business_name', 'the business')}",
+            task_type="planning",
+            system_prompt=CRM_SYSTEM_PROMPT,
+            quality_threshold=75,
         )
+        final_output = result.get("final_output", result.get("original_output", ""))
         try:
-            return json.loads(response)
+            return json.loads(final_output)
         except json.JSONDecodeError:
-            return {"raw": response}
+            return {"raw": final_output}
 
     async def _churn_prevention_strategy(self, params: dict) -> dict:
         prompt = f"""Design a churn prevention strategy for:

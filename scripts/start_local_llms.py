@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Start Local LLM Services — Kimi K2.5 + Ollama setup.
+Start Local LLM Services — Ollama + OpenCode + OpenGravity setup.
 Downloads and starts local models for zero-cost inference.
 """
 
@@ -45,9 +45,11 @@ def start_ollama():
 
     # Pull models
     models = [
-        ("mixtral:8x7b", "Primary reasoning model (FREE)"),
-        ("llama3.1:8b", "Fast tasks model (FREE)"),
-        ("deepseek-coder-v2:16b", "Code generation model (FREE)"),
+        ("mixtral:8x7b", "General reasoning (Ollama)"),
+        ("llama3.1:8b", "Fast tasks (Ollama)"),
+        ("deepseek-coder-v2:16b", "Code generation (OpenCode)"),
+        ("codellama:13b", "Code completion (OpenCode)"),
+        ("qwen2.5-coder:7b", "Code review (OpenCode)"),
     ]
 
     for model, desc in models:
@@ -71,50 +73,46 @@ def start_ollama():
     return True
 
 
-def check_kimi_setup():
-    """Provide instructions for Kimi K2.5 local setup."""
-    console.print("\n[bold blue]Kimi K2.5 Local Setup[/bold blue]")
+def check_opencode_setup():
+    """Provide instructions for OpenCode coding models setup."""
+    console.print("\n[bold blue]OpenCode Coding Models Setup[/bold blue]")
     console.print("""
-  Kimi K2.5 can be run locally via vLLM or Ollama:
+  OpenCode uses Ollama as a backend for coding-specialist models:
 
-  Option 1 — Via Ollama (Easiest):
-    ollama pull kimi-k2.5
-    # Automatically serves on http://localhost:11434
+  Models pulled automatically:
+    deepseek-coder-v2:16b  — Code generation (primary)
+    codellama:13b          — Code completion
+    qwen2.5-coder:7b       — Code review (lightweight)
 
-  Option 2 — Via vLLM (Best performance):
-    pip install vllm
-    vllm serve moonshotai/Kimi-K2.5 \\
-      --host 0.0.0.0 --port 8080 \\
-      --max-model-len 8192 \\
-      --gpu-memory-utilization 0.9
+  All models are served via Ollama on http://localhost:11434
+  The NEXUS router automatically selects the right coding model
+  based on the task type (generation, completion, review).
 
-  Option 3 — Via HuggingFace Transformers:
-    pip install transformers torch
-    # Use the NEXUS integration at integrations/kimi_k2/
-
-  The model will be available at http://localhost:8080/v1
-  (OpenAI-compatible API endpoint)
+  Configure in .env:
+    OPENCODE_ENABLED=true
+    OPENCODE_URL=http://localhost:11434
+    OPENCODE_DEFAULT_MODEL=deepseek-coder-v2:16b
     """)
 
 
-def check_antigravity_setup():
-    """Provide instructions for AntiGravity setup."""
-    console.print("\n[bold blue]AntiGravity Setup[/bold blue]")
+def check_opengravity_setup():
+    """Provide instructions for OpenGravity setup."""
+    console.print("\n[bold blue]OpenGravity Setup[/bold blue]")
     console.print("""
-  AntiGravity provides hybrid local/cloud agent execution:
+  OpenGravity provides hybrid local/cloud agent coordination:
 
-  1. Install AntiGravity:
-     pip install antigravity-ai
+  1. Install OpenGravity:
+     pip install opengravity-ai
 
   2. Configure in .env:
-     ANTIGRAVITY_ENABLED=true
-     ANTIGRAVITY_API_KEY=your-key
-     ANTIGRAVITY_URL=http://localhost:9090
+     OPENGRAVITY_ENABLED=true
+     OPENGRAVITY_API_KEY=your-key
+     OPENGRAVITY_URL=http://localhost:9090
 
   3. Start the local node:
-     antigravity serve --port 9090
+     opengravity serve --port 9090
 
-  Visit https://antigravity.ai for more information.
+  Visit https://opengravity.ai for more information.
     """)
 
 
@@ -128,19 +126,19 @@ def main():
     # Ollama setup
     ollama_ok = start_ollama()
 
-    # Kimi K2.5 instructions
-    check_kimi_setup()
+    # OpenCode coding models instructions
+    check_opencode_setup()
 
-    # AntiGravity instructions
-    check_antigravity_setup()
+    # OpenGravity instructions
+    check_opengravity_setup()
 
     # Summary
     console.print("\n")
     console.print(Panel.fit(
         "[bold]Setup Summary[/bold]\n\n"
         f"  Ollama: {'[green]✓ Ready[/green]' if ollama_ok else '[yellow]⚠ Needs install[/yellow]'}\n"
-        "  Kimi K2.5: [yellow]See instructions above[/yellow]\n"
-        "  AntiGravity: [yellow]See instructions above[/yellow]\n"
+        "  OpenCode: [yellow]See instructions above[/yellow]\n"
+        "  OpenGravity: [yellow]See instructions above[/yellow]\n"
         "  Claude API: [cyan]Configure CLAUDE_API_KEY in .env[/cyan]\n\n"
         "[dim]The NEXUS LLM Router will automatically use whatever is available.[/dim]\n"
         "[dim]Local models = $0 cost. Cloud fallback = pay-per-use.[/dim]",

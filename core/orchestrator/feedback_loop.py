@@ -30,6 +30,8 @@ class QualityScorer:
     # Minimum acceptable scores per task type
     QUALITY_THRESHOLDS = {
         "code_generation": 70,
+        "code_completion": 70,
+        "code_debugging": 70,
         "content_final": 75,
         "planning": 65,
         "analysis": 70,
@@ -39,6 +41,8 @@ class QualityScorer:
         "website_structure": 70,
         "growth_prediction": 65,
         "customer_support": 60,
+        "agent_coordination": 65,
+        "multi_agent_task": 65,
     }
 
     def score_output(
@@ -92,10 +96,13 @@ class QualityScorer:
         # Dimension 3: Relevance indicators
         task_keywords = {
             "code_generation": ["function", "class", "return", "import", "const", "def"],
+            "code_completion": ["function", "class", "return", "import", "const", "def"],
+            "code_debugging": ["fix", "error", "bug", "debug", "solution"],
             "content_draft": ["audience", "brand", "engagement", "content"],
             "planning": ["strategy", "timeline", "goal", "action", "phase"],
             "analysis": ["data", "trend", "metric", "insight", "growth"],
             "seo_optimization": ["keyword", "meta", "search", "ranking", "SEO"],
+            "agent_coordination": ["coordinate", "agent", "task", "workflow", "parallel"],
         }
         keywords = task_keywords.get(task_type, [])
         if keywords:

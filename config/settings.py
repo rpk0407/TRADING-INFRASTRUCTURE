@@ -1,5 +1,6 @@
 """
 NEXUS AI — Global Configuration
+4 Core Providers: Ollama, OpenCode, OpenGravity, Claude
 Loads from environment variables with smart defaults.
 """
 
@@ -38,49 +39,47 @@ class Settings(BaseSettings):
     )
     redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
 
-    # ─── Kimi K2.5 (Local) ───
-    kimi_local_enabled: bool = Field(default=True, alias="KIMI_LOCAL_ENABLED")
-    kimi_local_url: str = Field(
-        default="http://localhost:8080/v1",
-        alias="KIMI_LOCAL_URL"
-    )
-    kimi_model_name: str = Field(default="kimi-k2.5", alias="KIMI_MODEL_NAME")
-    kimi_max_tokens: int = Field(default=8192, alias="KIMI_MAX_TOKENS")
+    # ═══════════════════════════════════════════════════════════
+    # LLM PROVIDERS — 4 Core: Ollama → OpenCode → OpenGravity → Claude
+    # ═══════════════════════════════════════════════════════════
 
-    # ─── Ollama (Local) ───
+    # ─── Ollama (Local General-Purpose) ───
+    # Handles: content, analysis, classification, summarization, creative
+    # Models: Mixtral 8x7b (main), Llama 3.1 8B (fast)
     ollama_enabled: bool = Field(default=True, alias="OLLAMA_ENABLED")
     ollama_url: str = Field(default="http://localhost:11434", alias="OLLAMA_URL")
     ollama_default_model: str = Field(
         default="mixtral:8x7b", alias="OLLAMA_DEFAULT_MODEL"
     )
-    ollama_coding_model: str = Field(
-        default="deepseek-coder-v2:16b", alias="OLLAMA_CODING_MODEL"
-    )
     ollama_fast_model: str = Field(default="llama3.1:8b", alias="OLLAMA_FAST_MODEL")
 
-    # ─── AntiGravity ───
-    antigravity_enabled: bool = Field(default=True, alias="ANTIGRAVITY_ENABLED")
-    antigravity_api_key: Optional[str] = Field(default=None, alias="ANTIGRAVITY_API_KEY")
-    antigravity_url: str = Field(
-        default="http://localhost:9090", alias="ANTIGRAVITY_URL"
+    # ─── OpenCode (Local Coding Specialist via Ollama) ───
+    # Handles: code generation, code review, code completion, debugging, refactoring
+    # Uses 3 specialized models for different coding tasks
+    opencode_enabled: bool = Field(default=True, alias="OPENCODE_ENABLED")
+    opencode_primary_model: str = Field(
+        default="deepseek-coder-v2:16b", alias="OPENCODE_PRIMARY_MODEL"
+    )
+    opencode_completion_model: str = Field(
+        default="codellama:13b", alias="OPENCODE_COMPLETION_MODEL"
+    )
+    opencode_review_model: str = Field(
+        default="qwen2.5-coder:7b", alias="OPENCODE_REVIEW_MODEL"
     )
 
-    # ─── Gemini (FREE API) ───
-    gemini_enabled: bool = Field(default=True, alias="GEMINI_ENABLED")
-    gemini_api_key: Optional[str] = Field(default=None, alias="GEMINI_API_KEY")
-    gemini_model: str = Field(default="gemini-2.0-flash", alias="GEMINI_MODEL")
-    gemini_max_tokens: int = Field(default=8192, alias="GEMINI_MAX_TOKENS")
+    # ─── OpenGravity (Hybrid Local/Cloud) ───
+    # Handles: agent coordination, multi-agent tasks, complex planning
+    # Local-first with cloud fallback, privacy-preserving
+    opengravity_enabled: bool = Field(default=True, alias="OPENGRAVITY_ENABLED")
+    opengravity_api_key: Optional[str] = Field(default=None, alias="OPENGRAVITY_API_KEY")
+    opengravity_url: str = Field(
+        default="http://localhost:9090", alias="OPENGRAVITY_URL"
+    )
+    opengravity_prefer_local: bool = Field(default=True, alias="OPENGRAVITY_PREFER_LOCAL")
 
-    # ─── DeepSeek R1 (Local) ───
-    deepseek_enabled: bool = Field(default=True, alias="DEEPSEEK_ENABLED")
-    deepseek_model: str = Field(default="deepseek-r1:32b", alias="DEEPSEEK_MODEL")
-
-    # ─── Groq (FREE tier) ───
-    groq_enabled: bool = Field(default=True, alias="GROQ_ENABLED")
-    groq_api_key: Optional[str] = Field(default=None, alias="GROQ_API_KEY")
-    groq_model: str = Field(default="llama-3.3-70b-versatile", alias="GROQ_MODEL")
-
-    # ─── Claude API ───
+    # ─── Claude (Anthropic API — Premium Fallback) ───
+    # Handles: complex reasoning, fallback for all tasks, tool use, vision
+    # Budget-capped to control costs
     claude_api_key: Optional[str] = Field(default=None, alias="CLAUDE_API_KEY")
     claude_model: str = Field(
         default="claude-sonnet-4-5-20250929", alias="CLAUDE_MODEL"
@@ -89,6 +88,8 @@ class Settings(BaseSettings):
     claude_monthly_budget_usd: float = Field(
         default=50.0, alias="CLAUDE_MONTHLY_BUDGET_USD"
     )
+    claude_enable_tool_use: bool = Field(default=True, alias="CLAUDE_ENABLE_TOOL_USE")
+    claude_enable_vision: bool = Field(default=True, alias="CLAUDE_ENABLE_VISION")
 
     # ─── LLM Router ───
     llm_router_strategy: LLMRouterStrategy = Field(
@@ -97,7 +98,7 @@ class Settings(BaseSettings):
     )
     llm_cost_threshold: float = Field(default=0.01, alias="LLM_COST_THRESHOLD")
     llm_fallback_chain: str = Field(
-        default="kimi_local,ollama,deepseek,gemini,groq,antigravity,claude",
+        default="ollama,opencode,opengravity,claude",
         alias="LLM_FALLBACK_CHAIN"
     )
     llm_cache_enabled: bool = Field(default=True, alias="LLM_CACHE_ENABLED")

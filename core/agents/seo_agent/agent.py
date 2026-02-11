@@ -95,6 +95,18 @@ class SEOAgent(BaseAgent):
         }
 
     async def _keyword_research(self, params: dict) -> list[dict]:
+        # Scrape competitor URLs for real SEO intelligence
+        competitor_urls = params.get("competitor_urls", [])
+        competitor_data = []
+        if competitor_urls:
+            pages = await self.scraper.fetch_multiple(competitor_urls, extract_mode="full")
+            for page in pages:
+                competitor_data.append({
+                    "url": page.get("url"),
+                    "title": page.get("title"),
+                    "meta": page.get("metadata", {}),
+                })
+
         prompt = f"""Perform comprehensive keyword research for:
 
 Business: {params.get('business_name', '')}
@@ -102,6 +114,7 @@ Industry: {params.get('industry', '')}
 Products/Services: {params.get('products', [])}
 Location: {params.get('location', 'global')}
 Current website: {params.get('website_url', 'new site')}
+Competitor Intelligence: {json.dumps(competitor_data) if competitor_data else 'no competitor data available'}
 
 Return JSON array of 20+ keyword opportunities:
 [{{
@@ -130,11 +143,22 @@ Return JSON array of 20+ keyword opportunities:
     async def _technical_audit(self, params: dict, previous: dict) -> dict:
         website_data = previous.get("website_builder", {})
 
+        # Collect real browser metrics if a live site URL is provided
+        browser_metrics = {}
+        site_url = params.get("site_url") or params.get("website_url")
+        if site_url:
+            try:
+                browser_metrics = await self.browser.get_performance_metrics(site_url)
+                logger.info("seo_agent.browser_metrics_collected", url=site_url)
+            except Exception as e:
+                logger.warning("seo_agent.browser_metrics_failed", url=site_url, error=str(e))
+
         prompt = f"""Create a technical SEO audit checklist and recommendations for:
 
 Business: {params.get('business_name', '')}
 Website Info: {json.dumps(website_data) if isinstance(website_data, dict) else 'new website'}
 Tech Stack: {params.get('tech_stack', 'Next.js')}
+Live Performance Metrics: {json.dumps(browser_metrics) if browser_metrics else 'no live metrics available'}
 
 Return JSON:
 {{

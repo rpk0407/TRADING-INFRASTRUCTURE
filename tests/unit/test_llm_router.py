@@ -19,10 +19,10 @@ class TestLLMModels:
             assert "output" in PROVIDER_COSTS[provider]
 
     def test_local_models_are_free(self):
-        assert PROVIDER_COSTS[LLMProvider.KIMI_LOCAL]["input"] == 0.0
-        assert PROVIDER_COSTS[LLMProvider.KIMI_LOCAL]["output"] == 0.0
         assert PROVIDER_COSTS[LLMProvider.OLLAMA]["input"] == 0.0
         assert PROVIDER_COSTS[LLMProvider.OLLAMA]["output"] == 0.0
+        assert PROVIDER_COSTS[LLMProvider.OPENCODE]["input"] == 0.0
+        assert PROVIDER_COSTS[LLMProvider.OPENCODE]["output"] == 0.0
 
     def test_provider_capabilities_defined(self):
         for provider in LLMProvider:
@@ -33,15 +33,15 @@ class TestLLMModels:
 
     def test_claude_is_highest_rated(self):
         claude_caps = PROVIDER_CAPABILITIES[LLMProvider.CLAUDE]
-        for provider in [LLMProvider.KIMI_LOCAL, LLMProvider.OLLAMA]:
+        for provider in [LLMProvider.OLLAMA, LLMProvider.OPENCODE, LLMProvider.OPENGRAVITY]:
             other_caps = PROVIDER_CAPABILITIES[provider]
             assert sum(claude_caps.values()) >= sum(other_caps.values())
 
     def test_llm_response(self):
         resp = LLMResponse(
             content="test",
-            provider=LLMProvider.KIMI_LOCAL,
-            model="kimi-k2.5",
+            provider=LLMProvider.OPENCODE,
+            model="deepseek-coder-v2:16b",
             tokens_in=100,
             tokens_out=50,
         )

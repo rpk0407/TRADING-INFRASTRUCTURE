@@ -12,7 +12,8 @@ services:
       - DATABASE_URL=postgresql+asyncpg://nexus:nexus@postgres:5432/nexus
       - REDIS_URL=redis://redis:6379/0
       - OLLAMA_URL=http://ollama:11434
-      - KIMI_LOCAL_URL=http://kimi:8080/v1
+      - OPENCODE_ENABLED=true
+      - OPENGRAVITY_URL=http://opengravity:9090
     depends_on:
       - redis
       - postgres

@@ -3,6 +3,7 @@
 import {
   Cpu, DollarSign, Zap, Activity, Shield, Server, ChevronRight,
   ArrowDown, CheckCircle2, Clock, TrendingUp, AlertTriangle,
+  Code2, Globe2, Brain, Sparkles,
 } from "lucide-react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { StatCard } from "@/components/ui/StatCard";
@@ -10,66 +11,46 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 
 const PROVIDERS = [
   {
-    name: "Kimi K2.5", type: "LOCAL", status: "online", model: "kimi-k2.5",
-    color: "#10b981", costIn: 0, costOut: 0, maxTokens: "128K",
-    strengths: ["Strong reasoning (GPT-4 level)", "Excellent coding", "128K context", "Vision support", "Multilingual"],
-    setup: "ollama pull kimi-k2.5  OR  vllm serve moonshotai/Kimi-K2.5",
-    priority: 1, usage: 0, capabilities: { reasoning: 8, coding: 8, creative: 7, analysis: 8 },
+    name: "Ollama", type: "LOCAL", status: "online", model: "mixtral:8x7b / llama3.1:8b",
+    color: "#10b981", costIn: 0, costOut: 0, maxTokens: "32K",
+    strengths: ["Fast local inference", "Classification & tagging", "Content drafting", "Summarization", "SEO analysis", "Zero API cost"],
+    setup: "ollama pull mixtral:8x7b && ollama pull llama3.1:8b",
+    priority: 1, usage: 0, capabilities: { reasoning: 7, coding: 5, creative: 7, analysis: 7 },
   },
   {
-    name: "Ollama (Mixtral)", type: "LOCAL", status: "online", model: "mixtral:8x7b",
-    color: "#3b82f6", costIn: 0, costOut: 0, maxTokens: "32K",
-    strengths: ["Fast inference", "Good for drafting", "Classification", "Summarization", "Low resource usage"],
-    setup: "ollama pull mixtral:8x7b",
-    priority: 2, usage: 0, capabilities: { reasoning: 6, coding: 7, creative: 6, analysis: 6 },
+    name: "OpenCode", type: "LOCAL (CODE)", status: "online", model: "deepseek-coder-v2:16b / codellama / qwen2.5-coder",
+    color: "#3b82f6", costIn: 0, costOut: 0, maxTokens: "64K",
+    strengths: ["Code generation specialist", "Code review & refactoring", "Code completion", "Multi-language support", "Context-aware suggestions", "Zero API cost"],
+    setup: "ollama pull deepseek-coder-v2:16b && ollama pull codellama && ollama pull qwen2.5-coder",
+    priority: 2, usage: 0, capabilities: { reasoning: 6, coding: 9, creative: 4, analysis: 6 },
   },
   {
-    name: "Gemini 2.0 Flash", type: "FREE API", status: "online", model: "gemini-2.0-flash",
-    color: "#3b82f6", costIn: 0, costOut: 0, maxTokens: "1M",
-    strengths: ["FREE API tier (15 RPM)", "1M context window", "Multimodal", "Fast responses", "Google integration"],
-    setup: "Set GEMINI_API_KEY in .env — free at ai.google.dev",
-    priority: 3, usage: 0, capabilities: { reasoning: 8, coding: 7, creative: 7, analysis: 8 },
-  },
-  {
-    name: "AntiGravity", type: "HYBRID", status: "standby", model: "hybrid",
+    name: "OpenGravity", type: "HYBRID", status: "standby", model: "hybrid local/cloud",
     color: "#f59e0b", costIn: 0.0005, costOut: 0.001, maxTokens: "32K",
-    strengths: ["Local-first with cloud fallback", "Agent coordination", "Privacy preserving", "Cost tracking"],
-    setup: "pip install antigravity-ai && antigravity serve --port 9090",
-    priority: 4, usage: 0, capabilities: { reasoning: 7, coding: 7, creative: 7, analysis: 7 },
+    strengths: ["Local-first with cloud fallback", "Agent coordination", "Privacy preserving", "Cost tracking", "Multi-model orchestration"],
+    setup: "pip install opengravity-ai && opengravity serve --port 9090",
+    priority: 3, usage: 0, capabilities: { reasoning: 7, coding: 7, creative: 7, analysis: 7 },
   },
   {
-    name: "DeepSeek R1", type: "LOCAL", status: "available", model: "deepseek-r1:32b",
-    color: "#06b6d4", costIn: 0, costOut: 0, maxTokens: "64K",
-    strengths: ["Chain-of-thought reasoning", "Math excellence", "Open-source", "Competitive with GPT-4"],
-    setup: "ollama pull deepseek-r1:32b",
-    priority: 5, usage: 0, capabilities: { reasoning: 9, coding: 8, creative: 5, analysis: 9 },
-  },
-  {
-    name: "Groq (Llama 3.3 70B)", type: "FREE API", status: "online", model: "llama-3.3-70b-versatile",
-    color: "#f97316", costIn: 0, costOut: 0, maxTokens: "128K",
-    strengths: ["Ultra-fast inference (500+ tok/s)", "FREE 30 RPM", "Llama 3.3 70B", "Low latency", "OpenAI-compatible API"],
-    setup: "Set GROQ_API_KEY in .env — free at console.groq.com",
-    priority: 6, usage: 0, capabilities: { reasoning: 8, coding: 7, creative: 7, analysis: 8 },
-  },
-  {
-    name: "Claude API", type: "PAID FALLBACK", status: "standby", model: "claude-sonnet-4-5",
+    name: "Claude", type: "PREMIUM", status: "standby", model: "claude-sonnet-4-5",
     color: "#8b5cf6", costIn: 0.003, costOut: 0.015, maxTokens: "200K",
-    strengths: ["Top-tier reasoning", "Best coding", "Longest context", "Most reliable", "Complex planning"],
+    strengths: ["Top-tier reasoning", "Best-in-class coding", "Longest context window", "Most reliable outputs", "Complex planning & strategy"],
     setup: "Set CLAUDE_API_KEY — budget capped at $50/mo",
-    priority: 7, usage: 0, capabilities: { reasoning: 10, coding: 10, creative: 9, analysis: 10 },
+    priority: 4, usage: 0, capabilities: { reasoning: 10, coding: 10, creative: 9, analysis: 10 },
   },
 ];
 
 const ROUTING_RULES = [
-  { task: "Classification / Tagging", routed: "Ollama (Mixtral)", reason: "Simple task, fastest local model", cost: "FREE" },
-  { task: "Content Drafting", routed: "Kimi K2.5", reason: "Good creative + fast local inference", cost: "FREE" },
-  { task: "Code Generation", routed: "Kimi K2.5", reason: "Strong coding, free, 128K context", cost: "FREE" },
-  { task: "SEO Analysis", routed: "Kimi K2.5", reason: "Analysis + creative hybrid task", cost: "FREE" },
-  { task: "Complex Planning", routed: "Gemini Flash", reason: "1M context, free API, strong reasoning", cost: "FREE" },
-  { task: "Deep Reasoning", routed: "DeepSeek R1", reason: "Chain-of-thought specialist, free local", cost: "FREE" },
-  { task: "Fast Summarization", routed: "Groq (Llama 3.3)", reason: "Ultra-fast inference, 500+ tok/s, free API", cost: "FREE" },
-  { task: "Real-time Chat", routed: "Groq (Llama 3.3)", reason: "Lowest latency, free, great for live interactions", cost: "FREE" },
-  { task: "Multi-step Strategy", routed: "Claude API", reason: "Only if all 6 free providers fail — premium fallback", cost: "$0.01-0.05" },
+  { task: "Classification / Tagging", routed: "Ollama (Llama 3.1)", reason: "Simple task, fast local model", cost: "FREE" },
+  { task: "Content Drafting", routed: "Ollama (Mixtral)", reason: "Good creative output, fast local inference", cost: "FREE" },
+  { task: "Summarization", routed: "Ollama (Llama 3.1)", reason: "Efficient at extraction and compression", cost: "FREE" },
+  { task: "Code Generation", routed: "OpenCode (DeepSeek Coder)", reason: "Top-tier code generation, free local model", cost: "FREE" },
+  { task: "Code Review", routed: "OpenCode (Qwen2.5-Coder)", reason: "Excellent at code analysis and refactoring", cost: "FREE" },
+  { task: "Code Completion", routed: "OpenCode (CodeLlama)", reason: "Fast fill-in-the-middle completions", cost: "FREE" },
+  { task: "Agent Coordination", routed: "OpenGravity", reason: "Hybrid orchestration with local-first routing", cost: "~$0.001" },
+  { task: "SEO Analysis", routed: "Ollama (Mixtral)", reason: "Analysis + creative hybrid task", cost: "FREE" },
+  { task: "Complex Planning", routed: "Claude", reason: "Premium reasoning for multi-step strategy", cost: "$0.01-0.05" },
+  { task: "Deep Reasoning", routed: "Claude", reason: "Best-in-class chain-of-thought for hard problems", cost: "$0.01-0.05" },
 ];
 
 export default function LLMRouterPage() {
@@ -77,7 +58,7 @@ export default function LLMRouterPage() {
     <div className="space-y-6 max-w-[1600px] mx-auto">
       <SectionHeader
         title="Intelligent LLM Router"
-        subtitle="Routes every task to the cheapest model that can handle it — 95%+ runs FREE"
+        subtitle="4-provider system — routes every task to the optimal model. Local-first, premium only when needed."
         icon={<Cpu className="w-5 h-5" />}
       />
 
@@ -87,7 +68,7 @@ export default function LLMRouterPage() {
         <StatCard label="Cache Hit Rate" value="0%" icon={<Zap className="w-5 h-5" />} color="#3b82f6" />
         <StatCard label="Monthly Spend" value="$0.00" icon={<DollarSign className="w-5 h-5" />} color="#10b981" />
         <StatCard label="Budget Left" value="$50.00" icon={<Shield className="w-5 h-5" />} color="#f59e0b" />
-        <StatCard label="Free Rate" value="100%" icon={<TrendingUp className="w-5 h-5" />} color="#10b981" trend={{ value: "Target: 95%+", positive: true }} />
+        <StatCard label="Free Rate" value="100%" icon={<TrendingUp className="w-5 h-5" />} color="#10b981" trend={{ value: "Target: 80%+", positive: true }} />
       </div>
 
       {/* Provider Cards */}
@@ -105,7 +86,7 @@ export default function LLMRouterPage() {
                     <span className="text-sm font-semibold text-white">{p.name}</span>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
                       p.type === "LOCAL" ? "bg-emerald-500/15 text-emerald-400" :
-                      p.type === "FREE API" ? "bg-blue-500/15 text-blue-400" :
+                      p.type === "LOCAL (CODE)" ? "bg-blue-500/15 text-blue-400" :
                       p.type === "HYBRID" ? "bg-amber-500/15 text-amber-400" :
                       "bg-purple-500/15 text-purple-400"
                     }`}>{p.type}</span>
@@ -168,11 +149,10 @@ export default function LLMRouterPage() {
       <div className="card p-5 border-emerald-500/20">
         <h3 className="text-sm font-semibold text-emerald-400 mb-2">Cost Optimization Strategy</h3>
         <div className="text-xs text-gray-400 space-y-2">
-          <p><strong className="text-white">Priority 1-2 (Kimi K2.5 + Ollama):</strong> Local models handle 80%+ of all tasks. Zero cost, zero latency to external APIs. Kimi K2.5 matches GPT-4 on most benchmarks.</p>
-          <p><strong className="text-white">Priority 3 (Gemini Flash):</strong> Google&apos;s free API tier gives 15 requests/min with 1M context. Perfect for tasks needing massive context windows.</p>
-          <p><strong className="text-white">Priority 4-5 (AntiGravity + DeepSeek R1):</strong> Specialized fallbacks. AntiGravity for agent coordination, DeepSeek R1 for chain-of-thought reasoning.</p>
-          <p><strong className="text-white">Priority 6 (Groq):</strong> Ultra-fast inference (500+ tokens/sec) with free API tier. Ideal for real-time chat and quick summarization. 30 RPM free.</p>
-          <p><strong className="text-white">Priority 7 (Claude API):</strong> Nuclear option. Only used when all 6 free/local providers fail on a complex reasoning task. Budget capped at $50/month.</p>
+          <p><strong className="text-white">Priority 1 — Ollama (General):</strong> Local Mixtral and Llama 3.1 models handle classification, drafting, summarization, and SEO analysis. Zero cost, zero external API calls. Covers 50%+ of all tasks.</p>
+          <p><strong className="text-white">Priority 2 — OpenCode (Coding):</strong> Dedicated local coding models — DeepSeek Coder for generation, Qwen2.5-Coder for review, CodeLlama for completion. Handles all code tasks at zero cost.</p>
+          <p><strong className="text-white">Priority 3 — OpenGravity (Hybrid):</strong> Local-first with cloud fallback for agent coordination and multi-model orchestration. Near-zero cost per request.</p>
+          <p><strong className="text-white">Priority 4 — Claude (Premium):</strong> Reserved for complex planning and deep reasoning that local models cannot handle. Budget capped at $50/month.</p>
           <p className="mt-2 text-emerald-400 font-medium">Self-improving: The feedback loop tracks quality scores per provider per task type and auto-tunes routing over time.</p>
         </div>
       </div>

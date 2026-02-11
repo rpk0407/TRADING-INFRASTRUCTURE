@@ -165,16 +165,18 @@ Return JSON array of workflow automations:
     "implementation_code_outline": "pseudocode or API call structure"
 }}]"""
 
-        response = await self.think(
+        result = await self.think_with_reflection(
             prompt=prompt,
+            task_description=f"Design robust automated workflows for {params.get('business_name', 'the business')}",
             task_type="planning",
             system_prompt=AUTOMATION_SYSTEM_PROMPT,
-            max_tokens=4096,
+            quality_threshold=75,
         )
+        final_output = result.get("final_output", result.get("original_output", ""))
         try:
-            return json.loads(response)
+            return json.loads(final_output)
         except json.JSONDecodeError:
-            return [{"raw": response}]
+            return [{"raw": final_output}]
 
     async def _create_document_templates(self, params: dict) -> list[dict]:
         prompt = f"""Create business document templates for:

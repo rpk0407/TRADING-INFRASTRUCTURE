@@ -121,10 +121,14 @@ class BaseAgent(ABC):
         system_prompt: Optional[str] = None,
         max_tokens: int = 2048,
         temperature: float = 0.7,
+        force_provider: Optional[str] = None,
     ) -> str:
         """Use the LLM router to generate a response."""
         if not self.llm_router:
             raise RuntimeError(f"Agent {self.name} has no LLM router")
+
+        from core.llm_router.models import LLMProvider
+        fp = LLMProvider(force_provider) if force_provider else None
 
         response = await self.llm_router.generate(
             prompt=prompt,
@@ -132,9 +136,14 @@ class BaseAgent(ABC):
             system_prompt=system_prompt,
             max_tokens=max_tokens,
             temperature=temperature,
+            force_provider=fp,
         )
         self._total_cost += response.cost_usd
         return response.content
+
+    async def think_code(self, prompt: str, **kwargs) -> str:
+        """Generate code — forces routing to OpenCode provider."""
+        return await self.think(prompt, task_type="code_generation", force_provider="opencode", **kwargs)
 
     async def think_with_reflection(
         self,

@@ -236,9 +236,40 @@ Return JSON with THREE scenarios:
             max_tokens=4096,
         )
         try:
-            return json.loads(response)
+            forecast = json.loads(response)
         except json.JSONDecodeError:
             return {"raw": response}
+
+        # Validate the forecast numbers with a Python sanity check via executor
+        validation_code = f"""
+import json
+
+forecast = json.loads('''{json.dumps(forecast)}''')
+
+errors = []
+for scenario in ['conservative', 'moderate', 'aggressive']:
+    data = forecast.get(scenario, {{}})
+    projections = data.get('monthly_projections', [])
+    if not projections:
+        errors.append(f'{{scenario}}: missing monthly_projections')
+        continue
+    for i, month in enumerate(projections):
+        if not isinstance(month, dict):
+            errors.append(f'{{scenario}} month {{i+1}}: not a dict')
+
+result = {{"valid": len(errors) == 0, "errors": errors, "scenarios_found": [s for s in ['conservative','moderate','aggressive'] if s in forecast]}}
+print(json.dumps(result))
+"""
+        try:
+            validation = await self.executor.execute(validation_code, language="python")
+            validation_parsed = json.loads(validation.get("stdout", "{}"))
+            forecast["_validation"] = validation_parsed
+            logger.info("growth_analytics.forecast_validated", valid=validation_parsed.get("valid"))
+        except Exception as e:
+            logger.warning("growth_analytics.forecast_validation_failed", error=str(e))
+            forecast["_validation"] = {"valid": False, "error": str(e)}
+
+        return forecast
 
     async def _design_experiments(self, params: dict, previous: dict) -> list[dict]:
         prompt = f"""Design 5 growth experiments prioritized by ICE score:

@@ -1,1 +1,1 @@
-"""Kimi K2.5 local integration — Primary free workhorse model."""
+"""DEPRECATED: Use Ollama or OpenCode providers instead."""

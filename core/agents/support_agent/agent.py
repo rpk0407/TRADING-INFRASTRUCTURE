@@ -66,6 +66,23 @@ class SupportAgent(BaseAgent):
         # Create chatbot flows
         results["chatbot_flows"] = await self._design_chatbot_flows(params)
 
+        # Browser-test chatbot if a live chatbot URL is provided
+        chatbot_url = params.get("chatbot_url")
+        if chatbot_url:
+            try:
+                screenshot = await self.browser.take_screenshot(chatbot_url)
+                metrics = await self.browser.get_performance_metrics(chatbot_url)
+                results["chatbot_live_test"] = {
+                    "url": chatbot_url,
+                    "screenshot": screenshot,
+                    "performance": metrics,
+                    "status": "tested",
+                }
+                logger.info("support_agent.chatbot_tested", url=chatbot_url)
+            except Exception as e:
+                logger.warning("support_agent.chatbot_test_failed", url=chatbot_url, error=str(e))
+                results["chatbot_live_test"] = {"url": chatbot_url, "status": "failed", "error": str(e)}
+
         # Response templates
         results["templates"] = await self._create_response_templates(params)
 

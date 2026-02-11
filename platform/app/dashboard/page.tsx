@@ -23,11 +23,10 @@ const AGENTS = [
 ];
 
 const LLM_PROVIDERS = [
-  { name: "Kimi K2.5", type: "LOCAL", status: "online", color: "#10b981", cost: "$0.00", model: "kimi-k2.5" },
   { name: "Ollama", type: "LOCAL", status: "online", color: "#10b981", cost: "$0.00", model: "mixtral:8x7b" },
-  { name: "AntiGravity", type: "HYBRID", status: "standby", color: "#f59e0b", cost: "$0.00", model: "hybrid" },
-  { name: "Gemini", type: "FREE API", status: "online", color: "#3b82f6", cost: "$0.00", model: "gemini-2.0-flash" },
-  { name: "Claude", type: "FALLBACK", status: "standby", color: "#8b5cf6", cost: "$0.00", model: "claude-sonnet-4-5" },
+  { name: "OpenCode", type: "CODE", status: "online", color: "#3b82f6", cost: "$0.00", model: "deepseek-coder-v2" },
+  { name: "OpenGravity", type: "HYBRID", status: "standby", color: "#f59e0b", cost: "$0.00", model: "hybrid" },
+  { name: "Claude", type: "PREMIUM", status: "standby", color: "#8b5cf6", cost: "$0.00", model: "claude-sonnet-4-5" },
 ];
 
 const WORKFLOW_TEMPLATES = [
@@ -96,7 +95,7 @@ export default function DashboardPage() {
                     <span className="text-sm font-medium text-white">{p.name}</span>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
                       p.type === "LOCAL" ? "bg-emerald-500/15 text-emerald-400" :
-                      p.type === "FREE API" ? "bg-blue-500/15 text-blue-400" :
+                      p.type === "CODE" ? "bg-blue-500/15 text-blue-400" :
                       p.type === "HYBRID" ? "bg-amber-500/15 text-amber-400" :
                       "bg-purple-500/15 text-purple-400"
                     }`}>{p.type}</span>

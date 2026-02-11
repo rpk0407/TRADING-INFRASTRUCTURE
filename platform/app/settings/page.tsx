@@ -14,35 +14,30 @@ export default function SettingsPage() {
         <div className="space-y-4">
           <div className="p-3 bg-surface-0 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2"><span className="badge-green">LOCAL</span><span className="text-sm font-medium text-white">Kimi K2.5</span></div>
-              <span className="text-xs text-emerald-400">FREE</span>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><label className="text-xs text-gray-500 mb-1 block">URL</label><input className="input-field w-full text-sm" defaultValue="http://localhost:8080/v1" /></div>
-              <div><label className="text-xs text-gray-500 mb-1 block">Model Name</label><input className="input-field w-full text-sm" defaultValue="kimi-k2.5" /></div>
-            </div>
-          </div>
-          <div className="p-3 bg-surface-0 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2"><span className="badge-green">LOCAL</span><span className="text-sm font-medium text-white">Ollama</span></div>
               <span className="text-xs text-emerald-400">FREE</span>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div><label className="text-xs text-gray-500 mb-1 block">URL</label><input className="input-field w-full text-sm" defaultValue="http://localhost:11434" /></div>
               <div><label className="text-xs text-gray-500 mb-1 block">Default Model</label><input className="input-field w-full text-sm" defaultValue="mixtral:8x7b" /></div>
-              <div><label className="text-xs text-gray-500 mb-1 block">Coding Model</label><input className="input-field w-full text-sm" defaultValue="deepseek-coder-v2:16b" /></div>
+              <div><label className="text-xs text-gray-500 mb-1 block">Alt Model</label><input className="input-field w-full text-sm" defaultValue="llama3.1:8b" /></div>
             </div>
           </div>
           <div className="p-3 bg-surface-0 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2"><span className="badge-blue">FREE API</span><span className="text-sm font-medium text-white">Gemini</span></div>
-              <span className="text-xs text-emerald-400">FREE (15 RPM)</span>
+              <div className="flex items-center gap-2"><span className="badge-blue">LOCAL (CODE)</span><span className="text-sm font-medium text-white">OpenCode</span></div>
+              <span className="text-xs text-emerald-400">FREE</span>
             </div>
-            <div><label className="text-xs text-gray-500 mb-1 block">API Key</label><input className="input-field w-full text-sm" type="password" placeholder="Get free key at ai.google.dev" /></div>
+            <div className="grid grid-cols-4 gap-3">
+              <div><label className="text-xs text-gray-500 mb-1 block">URL</label><input className="input-field w-full text-sm" defaultValue="http://localhost:11434" /></div>
+              <div><label className="text-xs text-gray-500 mb-1 block">Primary Model</label><input className="input-field w-full text-sm" defaultValue="deepseek-coder-v2:16b" /></div>
+              <div><label className="text-xs text-gray-500 mb-1 block">Completion Model</label><input className="input-field w-full text-sm" defaultValue="codellama" /></div>
+              <div><label className="text-xs text-gray-500 mb-1 block">Review Model</label><input className="input-field w-full text-sm" defaultValue="qwen2.5-coder" /></div>
+            </div>
           </div>
           <div className="p-3 bg-surface-0 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2"><span className="badge-amber">HYBRID</span><span className="text-sm font-medium text-white">AntiGravity</span></div>
+              <div className="flex items-center gap-2"><span className="badge-amber">HYBRID</span><span className="text-sm font-medium text-white">OpenGravity</span></div>
               <span className="text-xs text-amber-400">Near-zero</span>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -52,7 +47,7 @@ export default function SettingsPage() {
           </div>
           <div className="p-3 bg-surface-0 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2"><span className="badge-purple">FALLBACK</span><span className="text-sm font-medium text-white">Claude API</span></div>
+              <div className="flex items-center gap-2"><span className="badge-purple">PREMIUM</span><span className="text-sm font-medium text-white">Claude API</span></div>
               <span className="text-xs text-purple-400">Paid (capped)</span>
             </div>
             <div className="grid grid-cols-3 gap-3">
