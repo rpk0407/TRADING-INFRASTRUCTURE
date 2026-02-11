@@ -10,6 +10,9 @@ from typing import Optional
 class LLMProvider(str, Enum):
     KIMI_LOCAL = "kimi_local"
     OLLAMA = "ollama"
+    DEEPSEEK = "deepseek"
+    GEMINI = "gemini"
+    GROQ = "groq"
     ANTIGRAVITY = "antigravity"
     CLAUDE = "claude"
 
@@ -24,10 +27,13 @@ class TaskComplexity(str, Enum):
 
 # Cost per 1K tokens (approximate)
 PROVIDER_COSTS = {
-    LLMProvider.KIMI_LOCAL: {"input": 0.0, "output": 0.0},
-    LLMProvider.OLLAMA: {"input": 0.0, "output": 0.0},
-    LLMProvider.ANTIGRAVITY: {"input": 0.0005, "output": 0.001},
-    LLMProvider.CLAUDE: {"input": 0.003, "output": 0.015},
+    LLMProvider.KIMI_LOCAL: {"input": 0.0, "output": 0.0},         # FREE
+    LLMProvider.OLLAMA: {"input": 0.0, "output": 0.0},             # FREE
+    LLMProvider.DEEPSEEK: {"input": 0.0, "output": 0.0},           # FREE (local)
+    LLMProvider.GEMINI: {"input": 0.0, "output": 0.0},             # FREE tier (15 RPM)
+    LLMProvider.GROQ: {"input": 0.0, "output": 0.0},               # FREE tier (30 RPM)
+    LLMProvider.ANTIGRAVITY: {"input": 0.0005, "output": 0.001},   # Near-zero
+    LLMProvider.CLAUDE: {"input": 0.003, "output": 0.015},         # Paid fallback
 }
 
 # Capability ratings per provider (1-10)
@@ -39,6 +45,18 @@ PROVIDER_CAPABILITIES = {
     LLMProvider.OLLAMA: {
         "reasoning": 6, "coding": 7, "creative": 6,
         "analysis": 6, "planning": 5, "multilingual": 5,
+    },
+    LLMProvider.DEEPSEEK: {
+        "reasoning": 9, "coding": 9, "creative": 5,
+        "analysis": 9, "planning": 8, "multilingual": 6,
+    },
+    LLMProvider.GEMINI: {
+        "reasoning": 8, "coding": 7, "creative": 8,
+        "analysis": 8, "planning": 8, "multilingual": 8,
+    },
+    LLMProvider.GROQ: {
+        "reasoning": 8, "coding": 7, "creative": 7,
+        "analysis": 7, "planning": 7, "multilingual": 7,
     },
     LLMProvider.ANTIGRAVITY: {
         "reasoning": 7, "coding": 7, "creative": 7,

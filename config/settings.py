@@ -65,6 +65,21 @@ class Settings(BaseSettings):
         default="http://localhost:9090", alias="ANTIGRAVITY_URL"
     )
 
+    # ─── Gemini (FREE API) ───
+    gemini_enabled: bool = Field(default=True, alias="GEMINI_ENABLED")
+    gemini_api_key: Optional[str] = Field(default=None, alias="GEMINI_API_KEY")
+    gemini_model: str = Field(default="gemini-2.0-flash", alias="GEMINI_MODEL")
+    gemini_max_tokens: int = Field(default=8192, alias="GEMINI_MAX_TOKENS")
+
+    # ─── DeepSeek R1 (Local) ───
+    deepseek_enabled: bool = Field(default=True, alias="DEEPSEEK_ENABLED")
+    deepseek_model: str = Field(default="deepseek-r1:32b", alias="DEEPSEEK_MODEL")
+
+    # ─── Groq (FREE tier) ───
+    groq_enabled: bool = Field(default=True, alias="GROQ_ENABLED")
+    groq_api_key: Optional[str] = Field(default=None, alias="GROQ_API_KEY")
+    groq_model: str = Field(default="llama-3.3-70b-versatile", alias="GROQ_MODEL")
+
     # ─── Claude API ───
     claude_api_key: Optional[str] = Field(default=None, alias="CLAUDE_API_KEY")
     claude_model: str = Field(
@@ -82,7 +97,7 @@ class Settings(BaseSettings):
     )
     llm_cost_threshold: float = Field(default=0.01, alias="LLM_COST_THRESHOLD")
     llm_fallback_chain: str = Field(
-        default="kimi_local,ollama,antigravity,claude",
+        default="kimi_local,ollama,deepseek,gemini,groq,antigravity,claude",
         alias="LLM_FALLBACK_CHAIN"
     )
     llm_cache_enabled: bool = Field(default=True, alias="LLM_CACHE_ENABLED")

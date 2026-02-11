@@ -56,6 +56,15 @@ class LLMRouter:
         if settings.ollama_enabled:
             await self._register_provider(LLMProvider.OLLAMA)
 
+        if settings.deepseek_enabled:
+            await self._register_provider(LLMProvider.DEEPSEEK)
+
+        if settings.gemini_enabled and settings.gemini_api_key:
+            await self._register_provider(LLMProvider.GEMINI)
+
+        if settings.groq_enabled and settings.groq_api_key:
+            await self._register_provider(LLMProvider.GROQ)
+
         if settings.antigravity_enabled:
             await self._register_provider(LLMProvider.ANTIGRAVITY)
 
@@ -240,6 +249,12 @@ class LLMRouter:
             return await self._call_kimi(messages, max_tokens, temperature)
         elif provider_id == LLMProvider.OLLAMA:
             return await self._call_ollama(messages, max_tokens, temperature)
+        elif provider_id == LLMProvider.DEEPSEEK:
+            return await self._call_deepseek(messages, max_tokens, temperature)
+        elif provider_id == LLMProvider.GEMINI:
+            return await self._call_gemini(messages, max_tokens, temperature)
+        elif provider_id == LLMProvider.GROQ:
+            return await self._call_groq(messages, max_tokens, temperature)
         elif provider_id == LLMProvider.ANTIGRAVITY:
             return await self._call_antigravity(messages, max_tokens, temperature)
         elif provider_id == LLMProvider.CLAUDE:
@@ -305,6 +320,123 @@ class LLMRouter:
             model=settings.ollama_default_model,
             tokens_in=data.get("prompt_eval_count", 0),
             tokens_out=data.get("eval_count", 0),
+        )
+
+    async def _call_deepseek(
+        self, messages: list, max_tokens: int, temperature: float
+    ) -> LLMResponse:
+        """Call DeepSeek R1 via Ollama (local, free, chain-of-thought reasoning)."""
+        import httpx
+
+        async with httpx.AsyncClient(timeout=180.0) as client:
+            resp = await client.post(
+                f"{settings.ollama_url}/api/chat",
+                json={
+                    "model": settings.deepseek_model,
+                    "messages": messages,
+                    "options": {
+                        "num_predict": max_tokens,
+                        "temperature": temperature,
+                    },
+                    "stream": False,
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+        return LLMResponse(
+            content=data["message"]["content"],
+            provider=LLMProvider.DEEPSEEK,
+            model=settings.deepseek_model,
+            tokens_in=data.get("prompt_eval_count", 0),
+            tokens_out=data.get("eval_count", 0),
+        )
+
+    async def _call_gemini(
+        self, messages: list, max_tokens: int, temperature: float
+    ) -> LLMResponse:
+        """Call Google Gemini API (FREE tier: 15 RPM, 1M context)."""
+        import httpx
+
+        # Convert messages to Gemini format
+        contents = []
+        system_instruction = None
+        for msg in messages:
+            if msg["role"] == "system":
+                system_instruction = msg["content"]
+            else:
+                role = "user" if msg["role"] == "user" else "model"
+                contents.append({
+                    "role": role,
+                    "parts": [{"text": msg["content"]}],
+                })
+
+        body: dict = {
+            "contents": contents,
+            "generationConfig": {
+                "maxOutputTokens": max_tokens,
+                "temperature": temperature,
+            },
+        }
+        if system_instruction:
+            body["systemInstruction"] = {
+                "parts": [{"text": system_instruction}]
+            }
+
+        url = (
+            f"https://generativelanguage.googleapis.com/v1beta/"
+            f"models/{settings.gemini_model}:generateContent"
+            f"?key={settings.gemini_api_key}"
+        )
+
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            resp = await client.post(url, json=body)
+            resp.raise_for_status()
+            data = resp.json()
+
+        text = data["candidates"][0]["content"]["parts"][0]["text"]
+        usage = data.get("usageMetadata", {})
+
+        return LLMResponse(
+            content=text,
+            provider=LLMProvider.GEMINI,
+            model=settings.gemini_model,
+            tokens_in=usage.get("promptTokenCount", 0),
+            tokens_out=usage.get("candidatesTokenCount", 0),
+        )
+
+    async def _call_groq(
+        self, messages: list, max_tokens: int, temperature: float
+    ) -> LLMResponse:
+        """Call Groq API (FREE tier: 30 RPM, ultra-fast inference)."""
+        import httpx
+
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            resp = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.groq_api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": settings.groq_model,
+                    "messages": messages,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+        choice = data["choices"][0]
+        usage = data.get("usage", {})
+
+        return LLMResponse(
+            content=choice["message"]["content"],
+            provider=LLMProvider.GROQ,
+            model=settings.groq_model,
+            tokens_in=usage.get("prompt_tokens", 0),
+            tokens_out=usage.get("completion_tokens", 0),
         )
 
     async def _call_antigravity(
@@ -401,6 +533,15 @@ class LLMRouter:
                     async with httpx.AsyncClient(timeout=5.0) as client:
                         resp = await client.get(f"{settings.ollama_url}/api/tags")
                         health.is_available = resp.status_code == 200
+                elif provider_id == LLMProvider.DEEPSEEK:
+                    import httpx
+                    async with httpx.AsyncClient(timeout=5.0) as client:
+                        resp = await client.get(f"{settings.ollama_url}/api/tags")
+                        health.is_available = resp.status_code == 200
+                elif provider_id == LLMProvider.GEMINI:
+                    health.is_available = bool(settings.gemini_api_key)
+                elif provider_id == LLMProvider.GROQ:
+                    health.is_available = bool(settings.groq_api_key)
                 elif provider_id == LLMProvider.CLAUDE:
                     health.is_available = bool(settings.claude_api_key)
                 else:
