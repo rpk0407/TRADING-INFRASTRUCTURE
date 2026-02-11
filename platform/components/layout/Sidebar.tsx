@@ -50,7 +50,8 @@ const NAV_SECTIONS = [
     label: "INTELLIGENCE",
     items: [
       { href: "/analytics", icon: BarChart3, label: "Growth Analytics", badge: null },
-      { href: "/llm-router", icon: Cpu, label: "LLM Router", badge: "FREE" },
+      { href: "/llm-router", icon: Cpu, label: "LLM Router", badge: "7" },
+      { href: "/lifecycle", icon: Workflow, label: "Client Lifecycle", badge: "NEW" },
     ],
   },
   {

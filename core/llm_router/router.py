@@ -41,6 +41,7 @@ class LLMRouter:
         self._providers: dict[LLMProvider, Any] = {}
         self._health: dict[LLMProvider, ProviderHealth] = {}
         self._cache: dict[str, LLMResponse] = {}
+        self._task_preferences: dict[str, str] = {}  # task_type -> preferred provider
         self._monthly_spend: float = 0.0
         self._request_count: int = 0
         self._cache_hits: int = 0
@@ -184,8 +185,27 @@ class LLMRouter:
             f"Last error: {last_error}"
         )
 
+    def set_preference(self, task_type: str, provider_name: str):
+        """Set a preferred provider for a task type (from feedback loop)."""
+        self._task_preferences[task_type] = provider_name
+        logger.info(
+            "llm_router.preference_set",
+            task_type=task_type,
+            provider=provider_name,
+        )
+
     def _select_providers(self, task_type: str) -> list[LLMProvider]:
         """Select providers based on task requirements and routing strategy."""
+        # Check if feedback loop has a preference
+        if task_type in self._task_preferences:
+            try:
+                preferred = LLMProvider(self._task_preferences[task_type])
+                if preferred in self._providers and self._is_available(preferred):
+                    others = self._get_fallback_chain()
+                    return [preferred] + [p for p in others if p != preferred]
+            except ValueError:
+                pass
+
         requirements = TASK_CAPABILITY_REQUIREMENTS.get(
             task_type, {"reasoning": 5}
         )

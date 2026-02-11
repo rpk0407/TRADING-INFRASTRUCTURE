@@ -45,11 +45,18 @@ const PROVIDERS = [
     priority: 5, usage: 0, capabilities: { reasoning: 9, coding: 8, creative: 5, analysis: 9 },
   },
   {
+    name: "Groq (Llama 3.3 70B)", type: "FREE API", status: "online", model: "llama-3.3-70b-versatile",
+    color: "#f97316", costIn: 0, costOut: 0, maxTokens: "128K",
+    strengths: ["Ultra-fast inference (500+ tok/s)", "FREE 30 RPM", "Llama 3.3 70B", "Low latency", "OpenAI-compatible API"],
+    setup: "Set GROQ_API_KEY in .env — free at console.groq.com",
+    priority: 6, usage: 0, capabilities: { reasoning: 8, coding: 7, creative: 7, analysis: 8 },
+  },
+  {
     name: "Claude API", type: "PAID FALLBACK", status: "standby", model: "claude-sonnet-4-5",
     color: "#8b5cf6", costIn: 0.003, costOut: 0.015, maxTokens: "200K",
     strengths: ["Top-tier reasoning", "Best coding", "Longest context", "Most reliable", "Complex planning"],
     setup: "Set CLAUDE_API_KEY — budget capped at $50/mo",
-    priority: 6, usage: 0, capabilities: { reasoning: 10, coding: 10, creative: 9, analysis: 10 },
+    priority: 7, usage: 0, capabilities: { reasoning: 10, coding: 10, creative: 9, analysis: 10 },
   },
 ];
 
@@ -60,7 +67,9 @@ const ROUTING_RULES = [
   { task: "SEO Analysis", routed: "Kimi K2.5", reason: "Analysis + creative hybrid task", cost: "FREE" },
   { task: "Complex Planning", routed: "Gemini Flash", reason: "1M context, free API, strong reasoning", cost: "FREE" },
   { task: "Deep Reasoning", routed: "DeepSeek R1", reason: "Chain-of-thought specialist, free local", cost: "FREE" },
-  { task: "Multi-step Strategy", routed: "Claude API", reason: "Only if local models fail — premium fallback", cost: "$0.01-0.05" },
+  { task: "Fast Summarization", routed: "Groq (Llama 3.3)", reason: "Ultra-fast inference, 500+ tok/s, free API", cost: "FREE" },
+  { task: "Real-time Chat", routed: "Groq (Llama 3.3)", reason: "Lowest latency, free, great for live interactions", cost: "FREE" },
+  { task: "Multi-step Strategy", routed: "Claude API", reason: "Only if all 6 free providers fail — premium fallback", cost: "$0.01-0.05" },
 ];
 
 export default function LLMRouterPage() {
@@ -162,7 +171,9 @@ export default function LLMRouterPage() {
           <p><strong className="text-white">Priority 1-2 (Kimi K2.5 + Ollama):</strong> Local models handle 80%+ of all tasks. Zero cost, zero latency to external APIs. Kimi K2.5 matches GPT-4 on most benchmarks.</p>
           <p><strong className="text-white">Priority 3 (Gemini Flash):</strong> Google&apos;s free API tier gives 15 requests/min with 1M context. Perfect for tasks needing massive context windows.</p>
           <p><strong className="text-white">Priority 4-5 (AntiGravity + DeepSeek R1):</strong> Specialized fallbacks. AntiGravity for agent coordination, DeepSeek R1 for chain-of-thought reasoning.</p>
-          <p><strong className="text-white">Priority 6 (Claude API):</strong> Nuclear option. Only used when all local/free providers fail on a complex reasoning task. Budget capped at $50/month.</p>
+          <p><strong className="text-white">Priority 6 (Groq):</strong> Ultra-fast inference (500+ tokens/sec) with free API tier. Ideal for real-time chat and quick summarization. 30 RPM free.</p>
+          <p><strong className="text-white">Priority 7 (Claude API):</strong> Nuclear option. Only used when all 6 free/local providers fail on a complex reasoning task. Budget capped at $50/month.</p>
+          <p className="mt-2 text-emerald-400 font-medium">Self-improving: The feedback loop tracks quality scores per provider per task type and auto-tunes routing over time.</p>
         </div>
       </div>
     </div>

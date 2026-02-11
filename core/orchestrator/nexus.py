@@ -15,6 +15,8 @@ import structlog
 from core.orchestrator.agent_graph import AgentGraph, AgentNode
 from core.orchestrator.task_queue import TaskQueue, Task, TaskPriority
 from core.orchestrator.memory_manager import MemoryManager
+from core.orchestrator.feedback_loop import FeedbackLoop, QualityScorer
+from core.lifecycle.client_engine import ClientLifecycleEngine
 from core.llm_router.router import LLMRouter
 from config.settings import settings
 
@@ -85,6 +87,8 @@ class NexusOrchestrator:
         self.task_queue = TaskQueue()
         self.memory = MemoryManager()
         self.llm_router = LLMRouter()
+        self.feedback_loop = FeedbackLoop()
+        self.lifecycle_engine = ClientLifecycleEngine(orchestrator=self)
         self.active_workflows: dict[str, Workflow] = {}
         self._agents: dict[str, Any] = {}
         self._running = False
@@ -309,18 +313,47 @@ Return ONLY the JSON array, no other text."""
                     timeout=settings.agent_timeout_seconds,
                 )
 
+                duration_ms = (
+                    datetime.now(timezone.utc) - start_time
+                ).total_seconds() * 1000
+
                 # Store result for downstream agents
                 workflow.results[agent_id] = result
                 workflow.cost_usd += result.get("cost_usd", 0.0)
+
+                # ─── Feedback Loop: Score & Record ───
+                output_str = str(result.get("output", result))
+                task_type = result.get("task_type", "general")
+                provider_used = result.get("provider", None)
+                if provider_used:
+                    from core.llm_router.models import LLMProvider
+                    try:
+                        provider_enum = LLMProvider(provider_used)
+                    except ValueError:
+                        provider_enum = None
+                    if provider_enum:
+                        quality = self.feedback_loop.record(
+                            provider=provider_enum,
+                            task_type=task_type,
+                            output=output_str,
+                            latency_ms=duration_ms,
+                            cost_usd=result.get("cost_usd", 0.0),
+                        )
+                        result["quality_score"] = quality["total"]
+                        result["quality_issues"] = quality["issues"]
+
+                        # Auto-tune: if feedback loop has enough data, hint router
+                        best = self.feedback_loop.get_best_provider(task_type)
+                        if best:
+                            self.llm_router.set_preference(task_type, best)
 
                 execution_record = {
                     "agent_id": agent_id,
                     "agent_name": agent.name,
                     "stage": stage,
-                    "duration_ms": (
-                        datetime.now(timezone.utc) - start_time
-                    ).total_seconds() * 1000,
+                    "duration_ms": duration_ms,
                     "cost_usd": result.get("cost_usd", 0.0),
+                    "quality_score": result.get("quality_score"),
                     "status": "completed",
                 }
                 workflow.agent_executions.append(execution_record)
@@ -328,7 +361,8 @@ Return ONLY the JSON array, no other text."""
                 logger.info(
                     "nexus.agent_completed",
                     agent=agent.name,
-                    duration_ms=execution_record["duration_ms"],
+                    duration_ms=duration_ms,
+                    quality=result.get("quality_score"),
                 )
                 return result
 
@@ -386,4 +420,15 @@ Return ONLY the JSON array, no other text."""
             "context": context,
             "recent_workflows": history[-10:],
             "available_agents": self.list_agents(),
+            "feedback_stats": self.feedback_loop.get_stats(),
+        }
+
+    def get_system_health(self) -> dict:
+        """Complete system health including feedback loop."""
+        return {
+            "llm_router": self.llm_router.get_stats(),
+            "feedback_loop": self.feedback_loop.get_stats(),
+            "active_workflows": len(self.active_workflows),
+            "registered_agents": len(self._agents),
+            "running": self._running,
         }

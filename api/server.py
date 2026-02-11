@@ -10,7 +10,7 @@ import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import workflows, agents, clients, analytics, health
+from api.routes import workflows, agents, clients, analytics, health, lifecycle
 from api.websockets.events import router as ws_router
 from core.orchestrator.nexus import NexusOrchestrator
 from config.settings import settings
@@ -59,6 +59,7 @@ app.include_router(workflows.router, prefix="/api/v1/workflows", tags=["Workflow
 app.include_router(agents.router, prefix="/api/v1/agents", tags=["Agents"])
 app.include_router(clients.router, prefix="/api/v1/clients", tags=["Clients"])
 app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["Analytics"])
+app.include_router(lifecycle.router, prefix="/api/v1/lifecycle", tags=["Lifecycle"])
 
 # WebSocket
 app.include_router(ws_router, prefix="/ws")
