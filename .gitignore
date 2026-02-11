@@ -35,5 +35,11 @@ logs/
 .DS_Store
 Thumbs.db
 
+# Node
+node_modules/
+.next/
+next-env.d.ts
+package-lock.json
+
 # Docker
 docker-compose.override.yml
