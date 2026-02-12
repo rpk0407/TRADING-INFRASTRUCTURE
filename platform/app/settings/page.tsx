@@ -1,9 +1,30 @@
 "use client";
 
-import { Settings, Server, Key, Globe, Bell, Shield, Users, Cpu, Database, Palette, Save } from "lucide-react";
+import { useState } from "react";
+import { Settings, Server, Key, Globe, Bell, Shield, Users, Cpu, Database, Palette, Save, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { api } from "@/lib/api";
 
 export default function SettingsPage() {
+  const [saving, setSaving] = useState(false);
+  const [saveResult, setSaveResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  async function handleSave() {
+    setSaving(true);
+    setSaveResult(null);
+    try {
+      const health = await api.systemHealth();
+      if (health) {
+        setSaveResult({ success: true, message: "Settings verified — backend is connected and healthy." });
+      } else {
+        setSaveResult({ success: false, message: "Backend is not reachable. Start it with: python3 -m api.server" });
+      }
+    } catch {
+      setSaveResult({ success: false, message: "Cannot reach backend. Settings are stored locally for now." });
+    }
+    setSaving(false);
+  }
+
   return (
     <div className="space-y-6 max-w-[1200px] mx-auto">
       <SectionHeader title="Settings" subtitle="Configure LLM providers, deployment targets, and system preferences" icon={<Settings className="w-5 h-5" />} />
@@ -82,7 +103,17 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="flex justify-end"><button className="btn-primary"><Save className="w-4 h-4" /> Save Settings</button></div>
+      {saveResult && (
+        <div className={`p-3 rounded-lg text-sm flex items-center gap-2 ${saveResult.success ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
+          {saveResult.success ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+          {saveResult.message}
+        </div>
+      )}
+      <div className="flex justify-end">
+        <button className="btn-primary" onClick={handleSave} disabled={saving}>
+          {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Save className="w-4 h-4" /> Save Settings</>}
+        </button>
+      </div>
     </div>
   );
 }

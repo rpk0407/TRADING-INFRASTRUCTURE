@@ -70,7 +70,7 @@ async def get_client_profile(request: Request, client_id: str):
     profile = orchestrator.lifecycle_engine.get_client(client_id)
     if not profile:
         raise HTTPException(status_code=404, detail="Client not found")
-    return profile
+    return profile.to_dict() if hasattr(profile, "to_dict") else profile
 
 
 @router.get("/")

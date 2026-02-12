@@ -79,6 +79,9 @@ class ReflectionEngine:
                 current, critique, task_description, task_type
             )
             improvements.append(critique["summary"])
+            # Stop if improvement produced same output (avoid infinite loop)
+            if improved == current:
+                break
             current = improved
 
         return {

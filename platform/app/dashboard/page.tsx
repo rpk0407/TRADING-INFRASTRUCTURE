@@ -1,15 +1,17 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Bot, Workflow, DollarSign, Users, Zap, Globe, FileText,
   Megaphone, UserCheck, Search, BarChart3, Headphones, Cog,
   Activity, Cpu, ArrowUpRight, Clock, CheckCircle2, AlertCircle,
-  TrendingUp, Server,
+  TrendingUp, Server, Wifi, WifiOff,
 } from "lucide-react";
 import { StatCard } from "@/components/ui/StatCard";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import Link from "next/link";
+import { api } from "@/lib/api";
 
 const AGENTS = [
   { id: "website_builder", name: "Website Builder", icon: Globe, color: "#3b82f6", status: "ready" as const, executions: 0, cost: 0 },
@@ -38,13 +40,45 @@ const WORKFLOW_TEMPLATES = [
 ];
 
 export default function DashboardPage() {
+  const [backendOnline, setBackendOnline] = useState(false);
+  const [systemHealth, setSystemHealth] = useState<any>(null);
+  const [agentList, setAgentList] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchLiveData() {
+      try {
+        const health = await api.systemHealth();
+        if (health) {
+          setBackendOnline(true);
+          setSystemHealth(health);
+        }
+        const agents = await api.listAgents();
+        if (agents?.agents) setAgentList(agents.agents);
+      } catch {
+        setBackendOnline(false);
+      }
+    }
+    fetchLiveData();
+    const interval = setInterval(fetchLiveData, 10000); // Refresh every 10s
+    return () => clearInterval(interval);
+  }, []);
+
+  const totalCost = systemHealth?.llm_router?.monthly_spend_usd ?? 0;
+  const totalWorkflows = systemHealth?.active_workflows ?? 0;
+
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Command Center</h1>
-          <p className="text-sm text-gray-500 mt-1">All systems operational — 8 agents standing by</p>
+          <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
+            {backendOnline ? (
+              <><Wifi className="w-3.5 h-3.5 text-emerald-400" /> Backend connected — {agentList.length || 8} agents standing by</>
+            ) : (
+              <><WifiOff className="w-3.5 h-3.5 text-gray-500" /> Backend offline — showing static data</>
+            )}
+          </p>
         </div>
         <Link href="/workflows" className="btn-primary">
           <Zap className="w-4 h-4" /> New Workflow
@@ -53,9 +87,9 @@ export default function DashboardPage() {
 
       {/* Top Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Active Agents" value="8" icon={<Bot className="w-5 h-5" />} color="#6366f1" trend={{ value: "All online", positive: true }} />
-        <StatCard label="Workflows Run" value="0" icon={<Workflow className="w-5 h-5" />} color="#3b82f6" />
-        <StatCard label="Total Cost" value="$0.00" icon={<DollarSign className="w-5 h-5" />} color="#10b981" trend={{ value: "99% free", positive: true }} />
+        <StatCard label="Active Agents" value={String(systemHealth?.registered_agents ?? 8)} icon={<Bot className="w-5 h-5" />} color="#6366f1" trend={{ value: backendOnline ? "All online" : "Static", positive: backendOnline }} />
+        <StatCard label="Workflows Run" value={String(totalWorkflows)} icon={<Workflow className="w-5 h-5" />} color="#3b82f6" />
+        <StatCard label="Total Cost" value={`$${totalCost.toFixed(2)}`} icon={<DollarSign className="w-5 h-5" />} color="#10b981" trend={{ value: "99% free", positive: true }} />
         <StatCard label="Clients" value="0" icon={<Users className="w-5 h-5" />} color="#f59e0b" />
       </div>
 

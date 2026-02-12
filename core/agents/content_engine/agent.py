@@ -211,7 +211,7 @@ Return JSON array: ["topic1", "topic2", ...]"""
                 research_data.append({
                     "url": page.get("url"),
                     "title": page.get("title"),
-                    "snippet": (page.get("text", "") or "")[:500],
+                    "snippet": (page.get("content", "") or "")[:500],
                 })
 
         posts = []

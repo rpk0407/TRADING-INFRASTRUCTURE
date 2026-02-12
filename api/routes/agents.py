@@ -2,7 +2,7 @@
 Agent API — View and manage the agent fleet.
 """
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 
 router = APIRouter()
 
@@ -23,7 +23,7 @@ async def get_agent(request: Request, agent_id: str):
     """Get detailed info about a specific agent."""
     orchestrator = request.app.state.orchestrator
     if agent_id not in orchestrator._agents:
-        return {"error": f"Agent '{agent_id}' not found"}
+        raise HTTPException(status_code=404, detail=f"Agent '{agent_id}' not found")
 
     agent = orchestrator._agents[agent_id]
     return {
@@ -40,6 +40,6 @@ async def get_agent_stats(request: Request, agent_id: str):
     """Get execution statistics for an agent."""
     orchestrator = request.app.state.orchestrator
     if agent_id not in orchestrator._agents:
-        return {"error": f"Agent '{agent_id}' not found"}
+        raise HTTPException(status_code=404, detail=f"Agent '{agent_id}' not found")
 
     return orchestrator._agents[agent_id].get_stats()

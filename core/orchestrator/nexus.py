@@ -5,6 +5,7 @@ Routes tasks intelligently, manages state, and ensures fault tolerance.
 """
 
 import asyncio
+import json
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
@@ -81,6 +82,8 @@ class NexusOrchestrator:
     - Real-time progress streaming via WebSocket
     - Cost tracking per workflow
     """
+
+    MAX_COMPLETED_WORKFLOWS = 200
 
     def __init__(self):
         self.agent_graph = AgentGraph()
@@ -195,7 +198,21 @@ class NexusOrchestrator:
             cost=workflow.cost_usd,
             agents_used=len(workflow.agent_executions),
         )
+
+        # Cleanup old completed workflows to prevent memory leak
+        self._cleanup_old_workflows()
+
         return workflow
+
+    def _cleanup_old_workflows(self):
+        """Remove old completed/failed workflows to bound memory."""
+        finished = [
+            wid for wid, w in self.active_workflows.items()
+            if w.status in (WorkflowStatus.COMPLETED, WorkflowStatus.FAILED)
+        ]
+        if len(finished) > self.MAX_COMPLETED_WORKFLOWS:
+            for wid in finished[:len(finished) - self.MAX_COMPLETED_WORKFLOWS]:
+                del self.active_workflows[wid]
 
     async def _plan_workflow(self, workflow: Workflow) -> list[list[str]]:
         """
@@ -244,7 +261,6 @@ Return ONLY the JSON array, no other text."""
         )
 
         try:
-            import json
             plan = json.loads(response.content)
             logger.info("nexus.plan_created", stages=len(plan), plan=plan)
             return plan

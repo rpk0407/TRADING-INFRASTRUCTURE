@@ -1,14 +1,16 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Workflow, ArrowRight, CheckCircle2, Clock, AlertTriangle,
   Users, Zap, Globe, FileText, Megaphone, UserCheck, Search,
   Headphones, Cog, BarChart3, Shield, Rocket, Heart,
-  ChevronRight, Play, Target,
+  ChevronRight, Play, Target, Wifi, WifiOff, Loader2,
 } from "lucide-react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { api } from "@/lib/api";
 
 const LIFECYCLE_PHASES = [
   {
@@ -109,6 +111,40 @@ const TEMPLATES = [
 ];
 
 export default function LifecyclePage() {
+  const [backendOnline, setBackendOnline] = useState(false);
+  const [clients, setClients] = useState<any[]>([]);
+  const [onboarding, setOnboarding] = useState(false);
+  const [onboardForm, setOnboardForm] = useState({ business_name: "", industry: "", website: "", description: "" });
+
+  useEffect(() => {
+    async function fetchClients() {
+      try {
+        const data = await api.lifecycleClients();
+        if (data) { setClients(Array.isArray(data) ? data : data.clients || []); setBackendOnline(true); }
+      } catch { setBackendOnline(false); }
+    }
+    fetchClients();
+    const interval = setInterval(fetchClients, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  async function handleOnboard() {
+    if (!onboardForm.business_name) return;
+    setOnboarding(true);
+    try {
+      await api.onboardClient(onboardForm);
+      setOnboardForm({ business_name: "", industry: "", website: "", description: "" });
+      const data = await api.lifecycleClients();
+      if (data) setClients(Array.isArray(data) ? data : data.clients || []);
+    } catch {}
+    setOnboarding(false);
+  }
+
+  const phasesCompleted = clients.reduce((sum, c) => sum + (c.phases_completed || 0), 0);
+  const avgHealth = clients.length > 0
+    ? Math.round(clients.reduce((sum: number, c: any) => sum + (c.health_score || 100), 0) / clients.length)
+    : 100;
+
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto">
       <SectionHeader
@@ -117,14 +153,62 @@ export default function LifecyclePage() {
         icon={<Workflow className="w-5 h-5" />}
       />
 
+      {/* Connection Status */}
+      <div className="flex items-center gap-2 text-xs text-gray-500">
+        {backendOnline ? (
+          <><Wifi className="w-3.5 h-3.5 text-emerald-400" /> Live data from backend</>
+        ) : (
+          <><WifiOff className="w-3.5 h-3.5 text-gray-500" /> Backend offline — showing defaults</>
+        )}
+      </div>
+
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <StatCard label="Active Clients" value="0" icon={<Users className="w-5 h-5" />} color="#6366f1" />
-        <StatCard label="Phases Completed" value="0" icon={<CheckCircle2 className="w-5 h-5" />} color="#10b981" />
+        <StatCard label="Active Clients" value={String(clients.length)} icon={<Users className="w-5 h-5" />} color="#6366f1" />
+        <StatCard label="Phases Completed" value={String(phasesCompleted)} icon={<CheckCircle2 className="w-5 h-5" />} color="#10b981" />
         <StatCard label="Workflows Run" value="0" icon={<Workflow className="w-5 h-5" />} color="#3b82f6" />
-        <StatCard label="Avg Health Score" value="100" icon={<Heart className="w-5 h-5" />} color="#ef4444" />
+        <StatCard label="Avg Health Score" value={String(avgHealth)} icon={<Heart className="w-5 h-5" />} color="#ef4444" />
         <StatCard label="Templates" value="6" icon={<Zap className="w-5 h-5" />} color="#f59e0b" />
       </div>
+
+      {/* Onboard New Client */}
+      <div className="card p-5 glow-border">
+        <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-nexus-400" /> Onboard New Client</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div><label className="text-xs text-gray-500 mb-1 block">Business Name *</label><input className="input-field w-full" placeholder="e.g. CloudPeak" value={onboardForm.business_name} onChange={(e) => setOnboardForm({ ...onboardForm, business_name: e.target.value })} /></div>
+          <div><label className="text-xs text-gray-500 mb-1 block">Industry</label><input className="input-field w-full" placeholder="e.g. SaaS" value={onboardForm.industry} onChange={(e) => setOnboardForm({ ...onboardForm, industry: e.target.value })} /></div>
+          <div><label className="text-xs text-gray-500 mb-1 block">Website</label><input className="input-field w-full" placeholder="e.g. cloudpeak.io" value={onboardForm.website} onChange={(e) => setOnboardForm({ ...onboardForm, website: e.target.value })} /></div>
+          <div className="flex items-end">
+            <button className="btn-primary w-full" onClick={handleOnboard} disabled={onboarding || !onboardForm.business_name}>
+              {onboarding ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Onboarding...</> : <><Play className="w-3.5 h-3.5" /> Start Onboarding</>}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Active Clients */}
+      {clients.length > 0 && (
+        <div>
+          <h3 className="section-title mb-4"><Users className="w-4 h-4 text-nexus-400" /> Active Clients</h3>
+          <div className="space-y-2">
+            {clients.map((c: any, i: number) => (
+              <div key={c.client_id || i} className="card p-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-nexus-500/15 flex items-center justify-center text-xs font-bold text-nexus-400">{(c.business_name || "?")[0]}</div>
+                  <div>
+                    <p className="text-sm font-medium text-white">{c.business_name || c.client_id}</p>
+                    <p className="text-[11px] text-gray-500">{c.industry || "—"} &middot; Phase: {c.current_phase || "onboard"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-500">Health: <strong className="text-emerald-400">{c.health_score || 100}</strong></span>
+                  <button className="btn-secondary text-xs py-1" onClick={() => api.advancePhase(c.client_id)}>Advance Phase</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Lifecycle Pipeline Visual */}
       <div>

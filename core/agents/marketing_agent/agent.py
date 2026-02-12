@@ -115,8 +115,8 @@ class MarketingAgent(BaseAgent):
                     "url": page.get("url"),
                     "title": page.get("title"),
                     "meta": page.get("metadata", {}),
-                    "headings": page.get("headings", []),
-                    "snippet": (page.get("text", "") or "")[:600],
+                    "headings": page.get("metadata", {}).get("h1_tags", []),
+                    "snippet": (page.get("content", "") or "")[:600],
                 })
             logger.info("marketing_agent.competitors_scraped", count=len(scraped_competitors))
 

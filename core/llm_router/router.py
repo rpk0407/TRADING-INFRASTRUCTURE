@@ -41,7 +41,7 @@ class LLMRouter:
     def __init__(self):
         self._providers: dict[LLMProvider, Any] = {}
         self._health: dict[LLMProvider, ProviderHealth] = {}
-        self._cache: dict[str, LLMResponse] = {}
+        self._cache: dict[str, tuple[LLMResponse, float]] = {}  # (response, cached_at)
         self._task_preferences: dict[str, str] = {}
         self._monthly_spend: float = 0.0
         self._request_count: int = 0
@@ -92,14 +92,18 @@ class LLMRouter:
     ) -> LLMResponse:
         self._request_count += 1
 
-        # Check cache
+        # Check cache (with TTL expiration)
+        cache_key = None
         if settings.llm_cache_enabled and not skip_cache:
-            cache_key = self._cache_key(prompt, task_type, system_prompt)
+            cache_key = self._cache_key(prompt, task_type, system_prompt, max_tokens, temperature)
             if cache_key in self._cache:
-                self._cache_hits += 1
-                cached = self._cache[cache_key]
-                cached.cached = True
-                return cached
+                cached_response, cached_at = self._cache[cache_key]
+                if (time.monotonic() - cached_at) < settings.llm_cache_ttl:
+                    self._cache_hits += 1
+                    cached_response.cached = True
+                    return cached_response
+                else:
+                    del self._cache[cache_key]  # Expired
 
         # Determine provider order
         if force_provider:
@@ -124,6 +128,7 @@ class LLMRouter:
                     provider_id, prompt, system_prompt, max_tokens, temperature, task_type
                 )
                 response.latency_ms = (time.monotonic() - start) * 1000
+                self._record_success(provider_id)
 
                 costs = PROVIDER_COSTS[provider_id]
                 response.cost_usd = (
@@ -132,8 +137,8 @@ class LLMRouter:
                 )
                 self._monthly_spend += response.cost_usd
 
-                if settings.llm_cache_enabled and not skip_cache:
-                    self._cache[cache_key] = response
+                if settings.llm_cache_enabled and not skip_cache and cache_key:
+                    self._cache[cache_key] = (response, time.monotonic())
 
                 logger.info(
                     "llm_router.success",
@@ -486,6 +491,11 @@ class LLMRouter:
             return False
         return health.is_available
 
+    def _record_success(self, provider_id: LLMProvider):
+        """Reset failure counter on successful call."""
+        if provider_id in self._health:
+            self._health[provider_id].consecutive_failures = 0
+
     def _record_failure(self, provider_id: LLMProvider):
         if provider_id in self._health:
             self._health[provider_id].consecutive_failures += 1
@@ -499,8 +509,11 @@ class LLMRouter:
                 pass
         return chain
 
-    def _cache_key(self, prompt: str, task_type: str, system_prompt: Optional[str]) -> str:
-        content = f"{task_type}:{system_prompt or ''}:{prompt}"
+    def _cache_key(
+        self, prompt: str, task_type: str, system_prompt: Optional[str],
+        max_tokens: int = 2048, temperature: float = 0.7,
+    ) -> str:
+        content = f"{task_type}:{system_prompt or ''}:{max_tokens}:{temperature}:{prompt}"
         return hashlib.sha256(content.encode()).hexdigest()[:16]
 
     # ═══════════════════════════════════════════════════════════

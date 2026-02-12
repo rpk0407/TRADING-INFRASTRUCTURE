@@ -1,13 +1,15 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Cpu, DollarSign, Zap, Activity, Shield, Server, ChevronRight,
   ArrowDown, CheckCircle2, Clock, TrendingUp, AlertTriangle,
-  Code2, Globe2, Brain, Sparkles,
+  Code2, Globe2, Brain, Sparkles, Wifi, WifiOff,
 } from "lucide-react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { api } from "@/lib/api";
 
 const PROVIDERS = [
   {
@@ -54,6 +56,27 @@ const ROUTING_RULES = [
 ];
 
 export default function LLMRouterPage() {
+  const [liveStats, setLiveStats] = useState<any>(null);
+  const [backendOnline, setBackendOnline] = useState(false);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const stats = await api.getLLMUsage();
+        if (stats) { setLiveStats(stats); setBackendOnline(true); }
+      } catch { setBackendOnline(false); }
+    }
+    fetchStats();
+    const interval = setInterval(fetchStats, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const totalRequests = liveStats?.total_requests ?? 0;
+  const cacheHitRate = liveStats?.cache_hit_rate ?? 0;
+  const monthlySpend = liveStats?.monthly_spend_usd ?? 0;
+  const budgetLeft = 50 - monthlySpend;
+  const freeRate = liveStats?.free_rate ?? 100;
+
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto">
       <SectionHeader
@@ -62,13 +85,22 @@ export default function LLMRouterPage() {
         icon={<Cpu className="w-5 h-5" />}
       />
 
+      {/* Connection Status */}
+      <div className="flex items-center gap-2 text-xs text-gray-500">
+        {backendOnline ? (
+          <><Wifi className="w-3.5 h-3.5 text-emerald-400" /> Live data from backend</>
+        ) : (
+          <><WifiOff className="w-3.5 h-3.5 text-gray-500" /> Backend offline — showing defaults</>
+        )}
+      </div>
+
       {/* Cost Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <StatCard label="Total Requests" value="0" icon={<Activity className="w-5 h-5" />} color="#6366f1" />
-        <StatCard label="Cache Hit Rate" value="0%" icon={<Zap className="w-5 h-5" />} color="#3b82f6" />
-        <StatCard label="Monthly Spend" value="$0.00" icon={<DollarSign className="w-5 h-5" />} color="#10b981" />
-        <StatCard label="Budget Left" value="$50.00" icon={<Shield className="w-5 h-5" />} color="#f59e0b" />
-        <StatCard label="Free Rate" value="100%" icon={<TrendingUp className="w-5 h-5" />} color="#10b981" trend={{ value: "Target: 80%+", positive: true }} />
+        <StatCard label="Total Requests" value={String(totalRequests)} icon={<Activity className="w-5 h-5" />} color="#6366f1" />
+        <StatCard label="Cache Hit Rate" value={`${cacheHitRate}%`} icon={<Zap className="w-5 h-5" />} color="#3b82f6" />
+        <StatCard label="Monthly Spend" value={`$${monthlySpend.toFixed(2)}`} icon={<DollarSign className="w-5 h-5" />} color="#10b981" />
+        <StatCard label="Budget Left" value={`$${budgetLeft.toFixed(2)}`} icon={<Shield className="w-5 h-5" />} color="#f59e0b" />
+        <StatCard label="Free Rate" value={`${freeRate}%`} icon={<TrendingUp className="w-5 h-5" />} color="#10b981" trend={{ value: "Target: 80%+", positive: true }} />
       </div>
 
       {/* Provider Cards */}

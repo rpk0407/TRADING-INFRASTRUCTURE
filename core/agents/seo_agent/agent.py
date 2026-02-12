@@ -148,7 +148,7 @@ Return JSON array of 20+ keyword opportunities:
         site_url = params.get("site_url") or params.get("website_url")
         if site_url:
             try:
-                browser_metrics = await self.browser.get_performance_metrics(site_url)
+                browser_metrics = await self.browser.get_page_metrics(site_url)
                 logger.info("seo_agent.browser_metrics_collected", url=site_url)
             except Exception as e:
                 logger.warning("seo_agent.browser_metrics_failed", url=site_url, error=str(e))

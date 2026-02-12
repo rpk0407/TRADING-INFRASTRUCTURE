@@ -70,8 +70,8 @@ class SupportAgent(BaseAgent):
         chatbot_url = params.get("chatbot_url")
         if chatbot_url:
             try:
-                screenshot = await self.browser.take_screenshot(chatbot_url)
-                metrics = await self.browser.get_performance_metrics(chatbot_url)
+                screenshot = await self.browser.screenshot(chatbot_url)
+                metrics = await self.browser.get_page_metrics(chatbot_url)
                 results["chatbot_live_test"] = {
                     "url": chatbot_url,
                     "screenshot": screenshot,

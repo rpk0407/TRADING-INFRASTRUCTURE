@@ -1,12 +1,15 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Bot, Globe, FileText, Megaphone, UserCheck, Search,
   BarChart3, Headphones, Cog, Zap, Activity, DollarSign,
   Layers, ArrowUpRight, Play, Settings, CheckCircle2,
+  Wifi, WifiOff, Loader2,
 } from "lucide-react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { api } from "@/lib/api";
 
 const AGENTS = [
   {
@@ -68,6 +71,30 @@ const AGENTS = [
 ];
 
 export default function AgentsPage() {
+  const [backendOnline, setBackendOnline] = useState(false);
+  const [liveAgents, setLiveAgents] = useState<any[]>([]);
+  const [totalExecutions, setTotalExecutions] = useState(0);
+  const [totalCost, setTotalCost] = useState(0);
+
+  useEffect(() => {
+    async function fetchAgents() {
+      try {
+        const data = await api.listAgents();
+        if (data?.agents) {
+          setLiveAgents(data.agents);
+          setBackendOnline(true);
+          const execs = data.agents.reduce((sum: number, a: any) => sum + (a.executions || 0), 0);
+          const cost = data.agents.reduce((sum: number, a: any) => sum + (a.total_cost || 0), 0);
+          setTotalExecutions(execs);
+          setTotalCost(cost);
+        }
+      } catch { setBackendOnline(false); }
+    }
+    fetchAgents();
+    const interval = setInterval(fetchAgents, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto">
       <SectionHeader
@@ -82,11 +109,20 @@ export default function AgentsPage() {
         }
       />
 
+      {/* Connection Status */}
+      <div className="flex items-center gap-2 text-xs text-gray-500">
+        {backendOnline ? (
+          <><Wifi className="w-3.5 h-3.5 text-emerald-400" /> Live data from backend</>
+        ) : (
+          <><WifiOff className="w-3.5 h-3.5 text-gray-500" /> Backend offline — showing static data</>
+        )}
+      </div>
+
       {/* Summary strip */}
       <div className="grid grid-cols-4 gap-3">
         <div className="card flex items-center gap-3 p-3">
           <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center"><CheckCircle2 className="w-4 h-4 text-emerald-400" /></div>
-          <div><p className="text-lg font-bold text-white">8</p><p className="text-[10px] text-gray-500 uppercase">Agents Online</p></div>
+          <div><p className="text-lg font-bold text-white">{liveAgents.length || 8}</p><p className="text-[10px] text-gray-500 uppercase">Agents Online</p></div>
         </div>
         <div className="card flex items-center gap-3 p-3">
           <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center"><Layers className="w-4 h-4 text-blue-400" /></div>
@@ -94,11 +130,11 @@ export default function AgentsPage() {
         </div>
         <div className="card flex items-center gap-3 p-3">
           <div className="w-8 h-8 rounded-lg bg-purple-500/15 flex items-center justify-center"><Activity className="w-4 h-4 text-purple-400" /></div>
-          <div><p className="text-lg font-bold text-white">0</p><p className="text-[10px] text-gray-500 uppercase">Total Executions</p></div>
+          <div><p className="text-lg font-bold text-white">{totalExecutions}</p><p className="text-[10px] text-gray-500 uppercase">Total Executions</p></div>
         </div>
         <div className="card flex items-center gap-3 p-3">
           <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center"><DollarSign className="w-4 h-4 text-emerald-400" /></div>
-          <div><p className="text-lg font-bold text-white">$0.00</p><p className="text-[10px] text-gray-500 uppercase">Total Cost</p></div>
+          <div><p className="text-lg font-bold text-white">${totalCost.toFixed(2)}</p><p className="text-[10px] text-gray-500 uppercase">Total Cost</p></div>
         </div>
       </div>
 

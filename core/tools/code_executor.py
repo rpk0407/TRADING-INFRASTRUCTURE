@@ -44,6 +44,13 @@ class CodeExecutor:
         self._work_dir = work_dir or tempfile.mkdtemp(prefix="nexus_exec_")
         os.makedirs(self._work_dir, exist_ok=True)
 
+    def __del__(self):
+        """Cleanup temp directory on garbage collection."""
+        try:
+            self.cleanup()
+        except Exception:
+            pass
+
     async def execute(
         self,
         code: str,
