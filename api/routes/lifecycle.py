@@ -11,27 +11,64 @@ router = APIRouter()
 
 
 class ClientIntake(BaseModel):
-    company_name: str
-    industry: str
+    company_name: str = ""
+    business_name: str = ""
+    industry: str = ""
     company_size: str = "small"
     target_audience: str = ""
     competitors: list[str] = Field(default_factory=list)
     goals: list[str] = Field(default_factory=list)
     budget_tier: str = "starter"
     services: list[str] = Field(default_factory=list)
+    website: str = ""
+    description: str = ""
 
+
+# ─── Static routes MUST come before /{client_id} to avoid being swallowed ───
 
 @router.post("/onboard")
 async def onboard_client(request: Request, intake: ClientIntake):
     """Onboard a new client — starts the full lifecycle automation."""
     orchestrator = request.app.state.orchestrator
-    profile = await orchestrator.lifecycle_engine.onboard_client(intake.model_dump())
+    data = intake.model_dump()
+    # Normalize: frontend may send business_name, backend expects company_name
+    if data.get("business_name") and not data.get("company_name"):
+        data["company_name"] = data["business_name"]
+    profile = await orchestrator.lifecycle_engine.onboard_client(data)
     return {
         "status": "onboarded",
-        "client": profile.to_dict(),
+        "client": profile.to_dict() if hasattr(profile, "to_dict") else profile,
         "next_steps": "Discovery and competitor research workflows started automatically.",
     }
 
+
+@router.get("/system/health")
+async def system_health(request: Request):
+    """Get complete system health including feedback loop stats."""
+    orchestrator = request.app.state.orchestrator
+    return orchestrator.get_system_health()
+
+
+@router.get("/templates")
+async def get_templates(request: Request):
+    """Get available automation templates."""
+    orchestrator = request.app.state.orchestrator
+    return {
+        "templates": orchestrator.lifecycle_engine.get_automation_templates(),
+    }
+
+
+@router.get("/")
+async def list_lifecycle_clients(request: Request):
+    """List all clients in the lifecycle system."""
+    orchestrator = request.app.state.orchestrator
+    return {
+        "clients": orchestrator.lifecycle_engine.list_clients(),
+        "total": len(orchestrator.lifecycle_engine._clients),
+    }
+
+
+# ─── Dynamic routes with path params come LAST ───
 
 @router.post("/{client_id}/advance")
 async def advance_phase(request: Request, client_id: str):
@@ -70,30 +107,5 @@ async def get_client_profile(request: Request, client_id: str):
     profile = orchestrator.lifecycle_engine.get_client(client_id)
     if not profile:
         raise HTTPException(status_code=404, detail="Client not found")
-    return profile.to_dict() if hasattr(profile, "to_dict") else profile
-
-
-@router.get("/")
-async def list_lifecycle_clients(request: Request):
-    """List all clients in the lifecycle system."""
-    orchestrator = request.app.state.orchestrator
-    return {
-        "clients": orchestrator.lifecycle_engine.list_clients(),
-        "total": len(orchestrator.lifecycle_engine._clients),
-    }
-
-
-@router.get("/templates")
-async def get_templates(request: Request):
-    """Get available automation templates."""
-    orchestrator = request.app.state.orchestrator
-    return {
-        "templates": orchestrator.lifecycle_engine.get_automation_templates(),
-    }
-
-
-@router.get("/system/health")
-async def system_health(request: Request):
-    """Get complete system health including feedback loop stats."""
-    orchestrator = request.app.state.orchestrator
-    return orchestrator.get_system_health()
+    # get_client() already returns a dict via .to_dict(), no double conversion
+    return profile

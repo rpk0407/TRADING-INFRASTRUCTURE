@@ -132,12 +132,26 @@ export default function LifecyclePage() {
     if (!onboardForm.business_name) return;
     setOnboarding(true);
     try {
-      await api.onboardClient(onboardForm);
+      await api.onboardClient({
+        company_name: onboardForm.business_name,
+        business_name: onboardForm.business_name,
+        industry: onboardForm.industry,
+        website: onboardForm.website,
+        description: onboardForm.description,
+      });
       setOnboardForm({ business_name: "", industry: "", website: "", description: "" });
       const data = await api.lifecycleClients();
       if (data) setClients(Array.isArray(data) ? data : data.clients || []);
     } catch {}
     setOnboarding(false);
+  }
+
+  async function handleAdvancePhase(clientId: string) {
+    try {
+      await api.advancePhase(clientId);
+      const data = await api.lifecycleClients();
+      if (data) setClients(Array.isArray(data) ? data : data.clients || []);
+    } catch {}
   }
 
   const phasesCompleted = clients.reduce((sum, c) => sum + (c.phases_completed || 0), 0);
@@ -202,7 +216,7 @@ export default function LifecyclePage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-gray-500">Health: <strong className="text-emerald-400">{c.health_score || 100}</strong></span>
-                  <button className="btn-secondary text-xs py-1" onClick={() => api.advancePhase(c.client_id)}>Advance Phase</button>
+                  <button className="btn-secondary text-xs py-1" onClick={() => handleAdvancePhase(c.client_id)}>Advance Phase</button>
                 </div>
               </div>
             ))}

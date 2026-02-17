@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import {
   Globe, Play, Code, Palette, Layout, Monitor, Smartphone,
   Tablet, Eye, Download, Upload, Rocket, Settings,
-  CheckCircle2, FileCode, Layers, Zap,
+  CheckCircle2, FileCode, Layers, Zap, Loader2, XCircle,
 } from "lucide-react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { api } from "@/lib/api";
 
 const SITE_TYPES = [
   { type: "Corporate", desc: "Professional business website", pages: "5-8" },
@@ -24,21 +26,59 @@ const DEPLOY_TARGETS = [
 ];
 
 export default function WebsitesPage() {
+  const [selectedType, setSelectedType] = useState(0);
+  const [generating, setGenerating] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [form, setForm] = useState({ business_name: "", industry: "", description: "" });
+
+  async function handleGenerate() {
+    if (!form.business_name) return;
+    setGenerating(true);
+    setResult(null);
+    try {
+      const res = await api.createWorkflow({
+        client_id: form.business_name.toLowerCase().replace(/\s+/g, "_"),
+        workflow_type: "website",
+        params: {
+          business_name: form.business_name,
+          industry: form.industry,
+          description: form.description,
+          site_type: SITE_TYPES[selectedType].type,
+        },
+      });
+      setResult({ success: true, message: `Website generation workflow launched! ${res?.message || ""}` });
+    } catch (e: any) {
+      setResult({ success: false, message: e.message || "Failed — is the backend running?" });
+    }
+    setGenerating(false);
+  }
+
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto">
       <SectionHeader
         title="Website Builder Studio"
         subtitle="Generate complete, deployable websites from business descriptions"
         icon={<Globe className="w-5 h-5" />}
-        action={<button className="btn-primary text-sm"><Rocket className="w-3.5 h-3.5" /> Generate Website</button>}
+        action={
+          <button className="btn-primary text-sm" onClick={handleGenerate} disabled={generating || !form.business_name}>
+            {generating ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating...</> : <><Rocket className="w-3.5 h-3.5" /> Generate Website</>}
+          </button>
+        }
       />
+
+      {result && (
+        <div className={`p-3 rounded-lg text-sm flex items-center gap-2 ${result.success ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
+          {result.success ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+          {result.message}
+        </div>
+      )}
 
       {/* Generation Form */}
       <div className="card p-5 glow-border">
         <h3 className="text-sm font-semibold text-white mb-4">Website Configuration</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div><label className="text-xs text-gray-500 mb-1 block">Business Name</label><input className="input-field w-full" placeholder="Company name" /></div>
-          <div><label className="text-xs text-gray-500 mb-1 block">Industry</label><input className="input-field w-full" placeholder="e.g. SaaS, Consulting" /></div>
+          <div><label className="text-xs text-gray-500 mb-1 block">Business Name</label><input className="input-field w-full" placeholder="Company name" value={form.business_name} onChange={(e) => setForm({ ...form, business_name: e.target.value })} /></div>
+          <div><label className="text-xs text-gray-500 mb-1 block">Industry</label><input className="input-field w-full" placeholder="e.g. SaaS, Consulting" value={form.industry} onChange={(e) => setForm({ ...form, industry: e.target.value })} /></div>
           <div>
             <label className="text-xs text-gray-500 mb-1 block">Style</label>
             <select className="input-field w-full">
@@ -46,7 +86,7 @@ export default function WebsitesPage() {
             </select>
           </div>
         </div>
-        <div className="mt-4"><label className="text-xs text-gray-500 mb-1 block">Business Description</label><textarea className="input-field w-full h-20 resize-none" placeholder="Describe the business, products/services, and target audience..." /></div>
+        <div className="mt-4"><label className="text-xs text-gray-500 mb-1 block">Business Description</label><textarea className="input-field w-full h-20 resize-none" placeholder="Describe the business, products/services, and target audience..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
           <div><label className="text-xs text-gray-500 mb-1 block">Primary Color</label><input type="color" className="w-full h-9 rounded-lg bg-surface-2 cursor-pointer" defaultValue="#6366f1" /></div>
           <div><label className="text-xs text-gray-500 mb-1 block">Secondary Color</label><input type="color" className="w-full h-9 rounded-lg bg-surface-2 cursor-pointer" defaultValue="#1e40af" /></div>
@@ -59,7 +99,7 @@ export default function WebsitesPage() {
         <h3 className="section-title mb-4"><Layout className="w-4 h-4 text-nexus-400" /> Site Type</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {SITE_TYPES.map((s, i) => (
-            <button key={s.type} className={`text-left p-3 rounded-xl border transition-all ${i === 0 ? "border-nexus-500/50 bg-nexus-600/10" : "border-surface-3 bg-surface-1 hover:border-surface-4"}`}>
+            <button key={s.type} onClick={() => setSelectedType(i)} className={`text-left p-3 rounded-xl border transition-all ${i === selectedType ? "border-nexus-500/50 bg-nexus-600/10" : "border-surface-3 bg-surface-1 hover:border-surface-4"}`}>
               <p className="text-sm font-medium text-white">{s.type}</p>
               <p className="text-[11px] text-gray-500 mt-0.5">{s.desc}</p>
               <p className="text-[10px] text-gray-600 mt-1">{s.pages} pages</p>

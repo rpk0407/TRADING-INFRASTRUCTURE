@@ -29,7 +29,7 @@ export const api = {
     apiFetch<any>("/api/v1/workflows/", { method: "POST", body: JSON.stringify(data) }),
   getWorkflow: (id: string) => apiFetch<any>(`/api/v1/workflows/${id}`),
   listWorkflows: (clientId?: string) =>
-    apiFetch<any>(`/api/v1/workflows/${clientId ? `?client_id=${clientId}` : ""}`),
+    safeFetch<any>(`/api/v1/workflows${clientId ? `?client_id=${clientId}` : ""}`),
   getTemplates: () => apiFetch<any>("/api/v1/workflows/templates/all"),
 
   // Agents
@@ -44,7 +44,7 @@ export const api = {
   getClientWorkflows: (id: string) => apiFetch<any>(`/api/v1/clients/${id}/workflows`),
 
   // Analytics
-  getLLMUsage: () => apiFetch<any>("/api/v1/analytics/llm-usage"),
+  getLLMUsage: () => safeFetch<any>("/api/v1/analytics/llm-usage"),
   getPlatformStats: () => safeFetch<any>("/api/v1/analytics/platform-stats"),
   getCostBreakdown: () => apiFetch<any>("/api/v1/analytics/cost-breakdown"),
 

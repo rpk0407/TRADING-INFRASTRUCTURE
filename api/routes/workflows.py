@@ -47,68 +47,6 @@ class WorkflowResponse(BaseModel):
     message: str
 
 
-@router.post("/", response_model=WorkflowResponse)
-async def create_workflow(
-    request: Request,
-    workflow: WorkflowRequest,
-    background_tasks: BackgroundTasks,
-):
-    """
-    Create and execute a new AI agent workflow.
-
-    The workflow will automatically:
-    1. Analyze the client's needs
-    2. Select optimal agents
-    3. Execute in parallel where possible
-    4. Return comprehensive results
-    """
-    orchestrator = request.app.state.orchestrator
-
-    # Start workflow in background
-    async def run_workflow():
-        await orchestrator.execute_workflow(
-            client_id=workflow.client_id,
-            workflow_type=workflow.workflow_type,
-            params=workflow.params,
-        )
-
-    background_tasks.add_task(run_workflow)
-
-    return WorkflowResponse(
-        workflow_id=f"wf_pending_{workflow.client_id}",
-        status="accepted",
-        message=(
-            f"Workflow '{workflow.workflow_type}' queued for client "
-            f"'{workflow.client_id}'. Check /workflows/{{id}} for status."
-        ),
-    )
-
-
-@router.get("/{workflow_id}")
-async def get_workflow(request: Request, workflow_id: str):
-    """Get workflow status and results."""
-    orchestrator = request.app.state.orchestrator
-    workflow = orchestrator.get_workflow(workflow_id)
-    if not workflow:
-        raise HTTPException(status_code=404, detail="Workflow not found")
-    return workflow.to_dict()
-
-
-@router.get("/")
-async def list_workflows(request: Request, client_id: Optional[str] = None):
-    """List all active workflows, optionally filtered by client."""
-    orchestrator = request.app.state.orchestrator
-    workflows = orchestrator.active_workflows.values()
-
-    if client_id:
-        workflows = [w for w in workflows if w.client_id == client_id]
-
-    return {
-        "total": len(list(workflows)),
-        "workflows": [w.to_dict() for w in workflows],
-    }
-
-
 # ─── Pre-built Workflow Templates ───
 
 WORKFLOW_TEMPLATES = {
@@ -163,6 +101,8 @@ WORKFLOW_TEMPLATES = {
 }
 
 
+# ─── Static routes MUST come before /{workflow_id} to avoid being swallowed ───
+
 @router.get("/templates/all")
 async def get_workflow_templates():
     """Get all available pre-built workflow templates."""
@@ -170,3 +110,65 @@ async def get_workflow_templates():
         "templates": WORKFLOW_TEMPLATES,
         "total": len(WORKFLOW_TEMPLATES),
     }
+
+
+@router.get("/")
+async def list_workflows(request: Request, client_id: Optional[str] = None):
+    """List all active workflows, optionally filtered by client."""
+    orchestrator = request.app.state.orchestrator
+    workflows = list(orchestrator.active_workflows.values())
+
+    if client_id:
+        workflows = [w for w in workflows if w.client_id == client_id]
+
+    return {
+        "total": len(workflows),
+        "workflows": [w.to_dict() for w in workflows],
+    }
+
+
+@router.post("/", response_model=WorkflowResponse)
+async def create_workflow(
+    request: Request,
+    workflow: WorkflowRequest,
+    background_tasks: BackgroundTasks,
+):
+    """
+    Create and execute a new AI agent workflow.
+
+    The workflow will automatically:
+    1. Analyze the client's needs
+    2. Select optimal agents
+    3. Execute in parallel where possible
+    4. Return comprehensive results
+    """
+    orchestrator = request.app.state.orchestrator
+
+    # Start workflow in background
+    async def run_workflow():
+        await orchestrator.execute_workflow(
+            client_id=workflow.client_id,
+            workflow_type=workflow.workflow_type,
+            params=workflow.params,
+        )
+
+    background_tasks.add_task(run_workflow)
+
+    return WorkflowResponse(
+        workflow_id=f"wf_pending_{workflow.client_id}",
+        status="accepted",
+        message=(
+            f"Workflow '{workflow.workflow_type}' queued for client "
+            f"'{workflow.client_id}'. Check /workflows/{{id}} for status."
+        ),
+    )
+
+
+@router.get("/{workflow_id}")
+async def get_workflow(request: Request, workflow_id: str):
+    """Get workflow status and results."""
+    orchestrator = request.app.state.orchestrator
+    workflow = orchestrator.get_workflow(workflow_id)
+    if not workflow:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    return workflow.to_dict()

@@ -18,6 +18,18 @@ async def list_agents(request: Request):
     }
 
 
+# ─── Specific sub-routes MUST come before /{agent_id} ───
+
+@router.get("/{agent_id}/stats")
+async def get_agent_stats(request: Request, agent_id: str):
+    """Get execution statistics for an agent."""
+    orchestrator = request.app.state.orchestrator
+    if agent_id not in orchestrator._agents:
+        raise HTTPException(status_code=404, detail=f"Agent '{agent_id}' not found")
+
+    return orchestrator._agents[agent_id].get_stats()
+
+
 @router.get("/{agent_id}")
 async def get_agent(request: Request, agent_id: str):
     """Get detailed info about a specific agent."""
@@ -33,13 +45,3 @@ async def get_agent(request: Request, agent_id: str):
         "cost_tier": agent.cost_tier,
         "stats": agent.get_stats(),
     }
-
-
-@router.get("/{agent_id}/stats")
-async def get_agent_stats(request: Request, agent_id: str):
-    """Get execution statistics for an agent."""
-    orchestrator = request.app.state.orchestrator
-    if agent_id not in orchestrator._agents:
-        raise HTTPException(status_code=404, detail=f"Agent '{agent_id}' not found")
-
-    return orchestrator._agents[agent_id].get_stats()

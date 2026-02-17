@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import {
   FileText, PenTool, Mail, Share2, Megaphone, Video,
-  Calendar, Mic, BookOpen, Zap, CheckCircle2, Play,
+  Calendar, Mic, BookOpen, Zap, CheckCircle2, Play, Loader2, XCircle,
 } from "lucide-react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { api } from "@/lib/api";
 
 const CONTENT_TYPES = [
   { icon: PenTool, name: "Brand Voice", desc: "Tone guide, vocabulary, personality traits, writing rules", color: "#8b5cf6" },
@@ -18,24 +20,83 @@ const CONTENT_TYPES = [
 ];
 
 export default function ContentPage() {
+  const [generating, setGenerating] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [form, setForm] = useState({ business_name: "", industry: "", target_audience: "", description: "" });
+
+  async function handleGenerateStrategy() {
+    if (!form.business_name) return;
+    setGenerating(true);
+    setResult(null);
+    try {
+      const res = await api.createWorkflow({
+        client_id: form.business_name.toLowerCase().replace(/\s+/g, "_"),
+        workflow_type: "content",
+        params: {
+          business_name: form.business_name,
+          industry: form.industry,
+          target_audience: form.target_audience,
+          description: form.description,
+        },
+      });
+      setResult({ success: true, message: `Content strategy workflow launched! ${res?.message || ""}` });
+    } catch (e: any) {
+      setResult({ success: false, message: e.message || "Failed — is the backend running?" });
+    }
+    setGenerating(false);
+  }
+
+  async function handleGenerateSingle(contentType: string) {
+    if (!form.business_name) {
+      setResult({ success: false, message: "Enter a business name first" });
+      return;
+    }
+    try {
+      await api.createWorkflow({
+        client_id: form.business_name.toLowerCase().replace(/\s+/g, "_"),
+        workflow_type: "content",
+        params: {
+          business_name: form.business_name,
+          industry: form.industry,
+          content_type: contentType,
+          description: form.description,
+        },
+      });
+      setResult({ success: true, message: `${contentType} generation started!` });
+    } catch (e: any) {
+      setResult({ success: false, message: e.message || "Failed" });
+    }
+  }
+
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto">
       <SectionHeader
         title="Content Engine"
         subtitle="AI-powered content creation at scale — every format, every platform"
         icon={<FileText className="w-5 h-5" />}
-        action={<button className="btn-primary text-sm"><Zap className="w-3.5 h-3.5" /> Generate Full Strategy</button>}
+        action={
+          <button className="btn-primary text-sm" onClick={handleGenerateStrategy} disabled={generating || !form.business_name}>
+            {generating ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating...</> : <><Zap className="w-3.5 h-3.5" /> Generate Full Strategy</>}
+          </button>
+        }
       />
+
+      {result && (
+        <div className={`p-3 rounded-lg text-sm flex items-center gap-2 ${result.success ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
+          {result.success ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+          {result.message}
+        </div>
+      )}
 
       {/* Config */}
       <div className="card p-5 glow-border">
         <h3 className="text-sm font-semibold text-white mb-4">Content Generation</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div><label className="text-xs text-gray-500 mb-1 block">Business Name</label><input className="input-field w-full" placeholder="Company name" /></div>
-          <div><label className="text-xs text-gray-500 mb-1 block">Industry</label><input className="input-field w-full" placeholder="Industry" /></div>
-          <div><label className="text-xs text-gray-500 mb-1 block">Target Audience</label><input className="input-field w-full" placeholder="Who are you reaching?" /></div>
+          <div><label className="text-xs text-gray-500 mb-1 block">Business Name</label><input className="input-field w-full" placeholder="Company name" value={form.business_name} onChange={(e) => setForm({ ...form, business_name: e.target.value })} /></div>
+          <div><label className="text-xs text-gray-500 mb-1 block">Industry</label><input className="input-field w-full" placeholder="Industry" value={form.industry} onChange={(e) => setForm({ ...form, industry: e.target.value })} /></div>
+          <div><label className="text-xs text-gray-500 mb-1 block">Target Audience</label><input className="input-field w-full" placeholder="Who are you reaching?" value={form.target_audience} onChange={(e) => setForm({ ...form, target_audience: e.target.value })} /></div>
         </div>
-        <div className="mt-4"><label className="text-xs text-gray-500 mb-1 block">Brand Description & Key Messages</label><textarea className="input-field w-full h-20 resize-none" placeholder="What does the brand stand for? Key differentiators, tone preferences..." /></div>
+        <div className="mt-4"><label className="text-xs text-gray-500 mb-1 block">Brand Description & Key Messages</label><textarea className="input-field w-full h-20 resize-none" placeholder="What does the brand stand for? Key differentiators, tone preferences..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
       </div>
 
       {/* Content Types */}
@@ -55,7 +116,7 @@ export default function ContentPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500">{ct.desc}</p>
-                <button className="mt-3 btn-ghost text-xs w-full justify-center"><Play className="w-3 h-3" /> Generate</button>
+                <button className="mt-3 btn-ghost text-xs w-full justify-center" onClick={() => handleGenerateSingle(ct.name)}><Play className="w-3 h-3" /> Generate</button>
               </div>
             );
           })}
