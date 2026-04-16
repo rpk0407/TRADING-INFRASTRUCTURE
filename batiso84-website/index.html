@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="fr-FR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Bat Iso-84 — Artisan RGE depuis 1978 en Vaucluse. Isolation, toiture, façade, pompe à chaleur, photovoltaïque, plomberie. Devis gratuit.">
+  <meta name="robots" content="index, follow">
+  <title>Bat Iso-84 — Rénovation énergétique en Provence depuis 1978</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Lenis smooth scroll -->
+  <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/visualizer.css">
+
+  <!-- Scripts (deferred) -->
+  <script src="js/animation.js" defer></script>
+  <script src="js/visualizer.js" defer></script>
+</head>
+<body>
+
+  <!-- ============================================================
+       NAV
+  ============================================================ -->
+  <nav class="nav" id="nav" role="navigation" aria-label="Navigation principale">
+    <div class="nav__inner premium-container">
+      <a href="#hero" class="nav__logo" aria-label="Bat Iso-84 — accueil">
+        <span class="nav__logo-main">Bat Iso-84</span>
+        <span class="nav__logo-sub">Artisans · Provence</span>
+      </a>
+      <ul class="nav__links" role="list">
+        <li><a href="#services" class="nav__link">Nos métiers</a></li>
+        <li><a href="#visualizer" class="nav__link">Simuler</a></li>
+        <li><a href="#contact" class="nav__link">Contact</a></li>
+      </ul>
+      <a href="tel:0490832498" class="btn btn--primary nav__cta" aria-label="Appeler le 04 90 83 24 98">
+        04 90 83 24 98
+      </a>
+      <button class="nav__burger" id="nav-burger" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO
+  ============================================================ -->
+  <section id="hero" class="hero" aria-label="Accueil">
+    <div class="hero__bg" aria-hidden="true">
+      <div class="hero__sky"></div>
+      <div class="hero__landscape"></div>
+    </div>
+    <div class="hero__content premium-container">
+      <div class="hero__copy">
+        <p class="hero__eyebrow">Artisan RGE depuis 1978 · Vaucluse · Provence</p>
+        <h1 class="hero__title text-display">Votre maison,<br><em>transformée.</em></h1>
+        <p class="hero__sub">Isolation, toiture, pompe à chaleur, photovoltaïque — nous gérons tout, de l'audit aux aides.</p>
+        <div class="hero__actions">
+          <a href="#scroll-scene" class="btn btn--primary btn--lg">Découvrir la rénovation</a>
+          <a href="tel:0490832498" class="btn btn--ghost btn--lg">04 90 83 24 98</a>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-hint" aria-hidden="true">
+      <span>↓</span>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCROLL SCENE — THE CENTERPIECE (600vh)
+  ============================================================ -->
+  <section id="scroll-scene" class="scroll-scene" aria-label="Transformation de votre maison en 8 étapes">
+    <div class="scene-pin-wrapper" id="scene-pin">
+
+      <!-- Sky background -->
+      <div class="sky-layer" id="sky-layer" aria-hidden="true"></div>
+
+      <!-- CSS House Illustration -->
+      <div class="house-wrap" id="house-wrap" aria-hidden="true">
+
+        <!-- Chimney -->
+        <div class="chimney" id="chimney">
+          <div class="chimney__body"></div>
+          <div class="chimney__smoke-puff" id="smoke1"></div>
+          <div class="chimney__smoke-puff" id="smoke2"></div>
+        </div>
+
+        <!-- Roof -->
+        <div class="roof" id="roof">
+          <div class="roof__shape"></div>
+          <div class="roof__tiles" id="roof-tiles"></div>
+          <div class="roof__solar" id="solar"></div>
+        </div>
+
+        <!-- House body -->
+        <div class="house-body" id="house-body">
+          <!-- Cracked wall texture (fades out as renovation progresses) -->
+          <div class="wall-cracks" id="wall-cracks"></div>
+          <!-- ITE insulation layer (fades in) -->
+          <div class="ite-layer" id="ite-layer"></div>
+
+          <!-- Windows (4 panes) -->
+          <div class="windows" id="windows">
+            <div class="win win--tl" id="win-tl"></div>
+            <div class="win win--tr" id="win-tr"></div>
+            <div class="win win--bl" id="win-bl"></div>
+            <div class="win win--br" id="win-br"></div>
+          </div>
+
+          <!-- Door -->
+          <div class="door" id="door"></div>
+        </div>
+
+        <!-- Heat pump (hidden initially) -->
+        <div class="heatpump" id="heatpump">
+          <div class="heatpump__unit"></div>
+          <div class="heatpump__fan"></div>
+        </div>
+
+        <!-- Garden / ground -->
+        <div class="garden" id="garden">
+          <div class="garden__ground"></div>
+          <div class="garden__bush garden__bush--l"></div>
+          <div class="garden__bush garden__bush--r"></div>
+          <div class="garden__tree garden__tree--r">
+            <div class="tree__trunk"></div>
+            <div class="tree__crown"></div>
+          </div>
+          <div class="garden__flower garden__flower--1"></div>
+          <div class="garden__flower garden__flower--2"></div>
+        </div>
+
+      </div>
+      <!-- END house-wrap -->
+
+      <!-- Stage text overlay (right side) -->
+      <div class="stage-text" id="stage-text" role="region" aria-live="polite" aria-label="Étapes de rénovation">
+        <div class="stage" data-stage="0">
+          <span class="stage__num">01</span>
+          <h2 class="stage__title">Votre maison aujourd'hui</h2>
+          <p class="stage__desc">Facture énergétique élevée. Inconfort thermique. DPE : F ou G.</p>
+        </div>
+        <div class="stage" data-stage="1">
+          <span class="stage__num">02</span>
+          <h2 class="stage__title">Diagnostic thermique</h2>
+          <p class="stage__desc">30 % de votre chauffage s'échappe par le toit. Nous l'identifions.</p>
+        </div>
+        <div class="stage" data-stage="2">
+          <span class="stage__num">03</span>
+          <h2 class="stage__title">Isolation des combles</h2>
+          <p class="stage__desc">Toiture rénovée, isolation posée. Les pertes sont stoppées net.</p>
+        </div>
+        <div class="stage" data-stage="3">
+          <span class="stage__num">04</span>
+          <h2 class="stage__title">Isolation par l'extérieur</h2>
+          <p class="stage__desc">Façade enveloppée. Frais l'été, chaud l'hiver. Sans perdre un m².</p>
+        </div>
+        <div class="stage" data-stage="4">
+          <span class="stage__num">05</span>
+          <h2 class="stage__title">Menuiseries &amp; fenêtres</h2>
+          <p class="stage__desc">Triple vitrage. Silence total. Confort instantané.</p>
+        </div>
+        <div class="stage" data-stage="5">
+          <span class="stage__num">06</span>
+          <h2 class="stage__title">Pompe à chaleur</h2>
+          <p class="stage__desc">-70 % sur la facture chauffage. Énergie renouvelable. QualiPAC.</p>
+        </div>
+        <div class="stage" data-stage="6">
+          <span class="stage__num">07</span>
+          <h2 class="stage__title">Panneaux photovoltaïques</h2>
+          <p class="stage__desc">Votre maison produit sa propre énergie. Compteur qui tourne pour vous.</p>
+        </div>
+        <div class="stage" data-stage="7">
+          <span class="stage__num">08</span>
+          <h2 class="stage__title">Votre maison, demain.</h2>
+          <p class="stage__desc">DPE : B. Valeur augmentée. Confort total. Avec Bat Iso-84.</p>
+          <a href="#visualizer" class="btn btn--primary">Simulez votre rénovation &#8594;</a>
+        </div>
+      </div>
+
+      <!-- Progress dots (8 stages) -->
+      <div class="progress-dots" id="progress-dots" aria-hidden="true" role="presentation">
+        <span class="pdot pdot--active" data-dot="0"></span>
+        <span class="pdot" data-dot="1"></span>
+        <span class="pdot" data-dot="2"></span>
+        <span class="pdot" data-dot="3"></span>
+        <span class="pdot" data-dot="4"></span>
+        <span class="pdot" data-dot="5"></span>
+        <span class="pdot" data-dot="6"></span>
+        <span class="pdot" data-dot="7"></span>
+      </div>
+
+      <!-- Savings counters (sticky bottom bar) -->
+      <div class="counter-bar" id="counter-bar" aria-label="Économies estimées">
+        <div class="counter-item">
+          <span class="counter-val" id="c-savings">0</span>
+          <span class="counter-unit">€/an</span>
+          <span class="counter-label">économisés</span>
+        </div>
+        <div class="counter-item">
+          <span class="counter-val" id="c-co2">0</span>
+          <span class="counter-unit">kg</span>
+          <span class="counter-label">CO&#8322; évités/an</span>
+        </div>
+        <div class="counter-item">
+          <span class="counter-val" id="c-kwh">0</span>
+          <span class="counter-unit">kWh</span>
+          <span class="counter-label">produits/an</span>
+        </div>
+      </div>
+
+    </div>
+    <!-- END scene-pin-wrapper -->
+  </section>
+
+  <!-- ============================================================
+       SERVICES
+  ============================================================ -->
+  <section id="services" class="services" aria-label="Nos métiers">
+    <div class="premium-container">
+      <div class="services__header">
+        <p class="section-eyebrow">Nos métiers</p>
+        <h2 class="services__title">Ce que nous faisons</h2>
+        <p class="services__sub">Artisans multiservices en Provence, certifiés RGE, pour une rénovation complète clé en main.</p>
+      </div>
+
+      <div class="services__grid full-bleed">
+        <!-- Isolation -->
+        <article class="service-card" tabindex="0">
+          <div class="service-card__icon" aria-hidden="true">&#127777;</div>
+          <div class="service-card__body">
+            <h3 class="service-card__title">Isolation</h3>
+            <p class="service-card__desc">Combles, murs, sol.</p>
+          </div>
+          <span class="service-card__arrow" aria-hidden="true">&#8594;</span>
+        </article>
+
+        <!-- Toiture -->
+        <article class="service-card" tabindex="0">
+          <div class="service-card__icon" aria-hidden="true">&#127968;</div>
+          <div class="service-card__body">
+            <h3 class="service-card__title">Toiture</h3>
+            <p class="service-card__desc">Couverture, charpente, étanchéité.</p>
+          </div>
+          <span class="service-card__arrow" aria-hidden="true">&#8594;</span>
+        </article>
+
+        <!-- Façade -->
+        <article class="service-card" tabindex="0">
+          <div class="service-card__icon" aria-hidden="true">&#127959;</div>
+          <div class="service-card__body">
+            <h3 class="service-card__title">Façade</h3>
+            <p class="service-card__desc">Ravalement, ITE, enduit.</p>
+          </div>
+          <span class="service-card__arrow" aria-hidden="true">&#8594;</span>
+        </article>
+
+        <!-- Pompe à chaleur -->
+        <article class="service-card" tabindex="0">
+          <div class="service-card__icon" aria-hidden="true">&#9832;</div>
+          <div class="service-card__body">
+            <h3 class="service-card__title">Pompe à chaleur</h3>
+            <p class="service-card__desc">Air/eau, air/air. -70% sur le chauffage.</p>
+          </div>
+          <span class="service-card__arrow" aria-hidden="true">&#8594;</span>
+        </article>
+
+        <!-- Photovoltaïque -->
+        <article class="service-card" tabindex="0">
+          <div class="service-card__icon" aria-hidden="true">&#9728;</div>
+          <div class="service-card__body">
+            <h3 class="service-card__title">Photovoltaïque</h3>
+            <p class="service-card__desc">Panneaux solaires. Énergie propre.</p>
+          </div>
+          <span class="service-card__arrow" aria-hidden="true">&#8594;</span>
+        </article>
+
+        <!-- Plomberie -->
+        <article class="service-card" tabindex="0">
+          <div class="service-card__icon" aria-hidden="true">&#128167;</div>
+          <div class="service-card__body">
+            <h3 class="service-card__title">Plomberie</h3>
+            <p class="service-card__desc">Installation, rénovation, dépannage.</p>
+          </div>
+          <span class="service-card__arrow" aria-hidden="true">&#8594;</span>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       WHY US
+  ============================================================ -->
+  <section id="why-us" class="why-us" aria-label="Pourquoi nous choisir">
+    <div class="premium-container">
+      <div class="why-us__inner">
+
+        <!-- Left: stats -->
+        <div class="why-us__stats">
+          <p class="section-eyebrow">Pourquoi nous choisir</p>
+          <h2 class="why-us__title">Des chiffres<br>qui parlent</h2>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <span class="stat-val" data-target="46" aria-label="46 ans d'expérience">0</span>
+              <span class="stat-unit">ans</span>
+              <span class="stat-label">d'expérience</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-val" data-target="150" aria-label="150 km de rayon d'intervention">0</span>
+              <span class="stat-unit">km</span>
+              <span class="stat-label">de rayon</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-val" data-target="60" aria-label="60 % d'économies possibles">0</span>
+              <span class="stat-unit">%</span>
+              <span class="stat-label">d'économies possibles</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-val" data-target="4" aria-label="4 départements couverts">0</span>
+              <span class="stat-unit">dép.</span>
+              <span class="stat-label">départements</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: certifications + aides -->
+        <div class="why-us__certs">
+          <h3 class="why-us__certs-title">Certifications &amp; garanties</h3>
+          <div class="cert-badges">
+            <div class="cert-badge">
+              <span class="cert-badge__icon" aria-hidden="true">&#10003;</span>
+              <div>
+                <strong>Qualibat RGE</strong>
+                <span>Reconnu Garant de l'Environnement</span>
+              </div>
+            </div>
+            <div class="cert-badge">
+              <span class="cert-badge__icon" aria-hidden="true">&#10003;</span>
+              <div>
+                <strong>QualiPAC</strong>
+                <span>Pompe à chaleur certifiée</span>
+              </div>
+            </div>
+            <div class="cert-badge">
+              <span class="cert-badge__icon" aria-hidden="true">&#10003;</span>
+              <div>
+                <strong>Devis Gratuit</strong>
+                <span>Sans engagement, réponse sous 48h</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="aides-band">
+            <p class="aides-band__title">Aides financières accessibles</p>
+            <div class="aides-list">
+              <span class="aide-pill">MaPrimeRénov'</span>
+              <span class="aide-pill">CEE</span>
+              <span class="aide-pill">éco-PTZ</span>
+              <span class="aide-pill">TVA 5,5%</span>
+            </div>
+            <p class="aides-band__note">Nous vous accompagnons dans toutes vos démarches administratives.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       VISUALIZER
+  ============================================================ -->
+  <section id="visualizer" class="visualizer" aria-label="Simulateur de rénovation">
+    <div class="premium-container">
+      <div class="viz-header">
+        <p class="section-eyebrow">Outil gratuit</p>
+        <h2>Simulez votre rénovation</h2>
+        <p>Photo de votre maison + travaux voulus = estimation instantanée.</p>
+      </div>
+
+      <div class="viz-workspace">
+        <div class="viz-upload" id="viz-upload">
+          <input type="file" id="viz-input" accept="image/*" aria-label="Charger la photo de votre maison">
+          <div class="viz-placeholder" id="viz-placeholder">
+            <span aria-hidden="true">&#128247;</span>
+            <p>Déposez ou cliquez pour charger votre maison</p>
+            <span class="viz-placeholder__hint">JPG, PNG, WEBP — max 10 Mo</span>
+          </div>
+          <img id="viz-img" style="display:none;" alt="Aperçu de votre maison">
+        </div>
+
+        <div class="viz-panel">
+          <h3>Vos travaux</h3>
+          <div class="viz-checks" id="viz-checks">
+            <label class="vcheck">
+              <input type="checkbox" value="isolation" data-min="3000" data-max="18000">
+              <span class="vcheck__box" aria-hidden="true"></span>
+              <span class="vcheck__name">Isolation combles / murs</span>
+              <span class="vcheck__range">3 000 – 18 000 €</span>
+            </label>
+            <label class="vcheck">
+              <input type="checkbox" value="toiture" data-min="8000" data-max="25000">
+              <span class="vcheck__box" aria-hidden="true"></span>
+              <span class="vcheck__name">Toiture complète</span>
+              <span class="vcheck__range">8 000 – 25 000 €</span>
+            </label>
+            <label class="vcheck">
+              <input type="checkbox" value="facade" data-min="5000" data-max="30000">
+              <span class="vcheck__box" aria-hidden="true"></span>
+              <span class="vcheck__name">Ravalement / ITE façade</span>
+              <span class="vcheck__range">5 000 – 30 000 €</span>
+            </label>
+            <label class="vcheck">
+              <input type="checkbox" value="pac" data-min="8000" data-max="20000">
+              <span class="vcheck__box" aria-hidden="true"></span>
+              <span class="vcheck__name">Pompe à chaleur</span>
+              <span class="vcheck__range">8 000 – 20 000 €</span>
+            </label>
+            <label class="vcheck">
+              <input type="checkbox" value="photo" data-min="6000" data-max="18000">
+              <span class="vcheck__box" aria-hidden="true"></span>
+              <span class="vcheck__name">Panneaux photovoltaïques</span>
+              <span class="vcheck__range">6 000 – 18 000 €</span>
+            </label>
+            <label class="vcheck">
+              <input type="checkbox" value="plomb" data-min="1500" data-max="8000">
+              <span class="vcheck__box" aria-hidden="true"></span>
+              <span class="vcheck__name">Plomberie</span>
+              <span class="vcheck__range">1 500 – 8 000 €</span>
+            </label>
+          </div>
+
+          <div class="viz-result" id="viz-result" style="display:none;" aria-live="polite">
+            <div class="viz-result__row">
+              <span>Estimation travaux</span>
+              <strong id="vr-total">—</strong>
+            </div>
+            <div class="viz-result__row viz-result__row--green">
+              <span>Aides estimées</span>
+              <strong id="vr-aid">—</strong>
+            </div>
+            <div class="viz-result__row viz-result__row--big">
+              <span>Reste à charge</span>
+              <strong id="vr-net">—</strong>
+            </div>
+            <p class="viz-disclaimer">Estimation indicative. Devis précis gratuit.</p>
+          </div>
+
+          <a href="tel:0490832498" class="btn btn--primary viz-cta">Demander un devis gratuit</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       CTA BAND
+  ============================================================ -->
+  <section id="cta" class="cta-band" aria-label="Appel à l'action">
+    <div class="premium-container">
+      <div class="cta-band__inner">
+        <h2 class="cta-band__headline">Prêt à transformer votre maison&nbsp;?</h2>
+        <p class="cta-band__sub">Devis gratuit · Réponse sous 48h · Sans engagement</p>
+        <div class="cta-band__actions">
+          <a href="tel:0490832498" class="btn btn--primary btn--lg">04 90 83 24 98</a>
+          <a href="tel:0761585719" class="btn btn--ghost btn--lg">07 61 58 57 19</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+  ============================================================ -->
+  <footer id="contact" class="footer" role="contentinfo">
+    <div class="premium-container">
+      <div class="footer__grid full-bleed">
+
+        <!-- Col 1: Brand -->
+        <div class="footer__col footer__col--brand">
+          <p class="footer__logo">Bat Iso-84</p>
+          <address class="footer__address">
+            Zone Artisanale<br>
+            84000 Avignon<br>
+            Vaucluse, Provence
+          </address>
+          <div class="footer__phones">
+            <a href="tel:0490832498" class="footer__phone">04 90 83 24 98</a>
+            <a href="tel:0761585719" class="footer__phone">07 61 58 57 19</a>
+          </div>
+          <div class="footer__zones">
+            <span class="zone-pill">Vaucluse (84)</span>
+            <span class="zone-pill">Bouches-du-Rhône (13)</span>
+            <span class="zone-pill">Drôme (26)</span>
+            <span class="zone-pill">Gard (30)</span>
+          </div>
+        </div>
+
+        <!-- Col 2: Nos métiers -->
+        <div class="footer__col">
+          <h3 class="footer__col-title">Nos métiers</h3>
+          <ul class="footer__links" role="list">
+            <li><a href="#services" class="footer__link">Isolation thermique</a></li>
+            <li><a href="#services" class="footer__link">Toiture &amp; charpente</a></li>
+            <li><a href="#services" class="footer__link">Façade &amp; ravalement</a></li>
+            <li><a href="#services" class="footer__link">Pompe à chaleur</a></li>
+            <li><a href="#services" class="footer__link">Panneaux photovoltaïques</a></li>
+            <li><a href="#services" class="footer__link">Plomberie</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Légal -->
+        <div class="footer__col">
+          <h3 class="footer__col-title">Informations légales</h3>
+          <ul class="footer__legal-info" role="list">
+            <li><strong>SAS BAT ISO 84</strong></li>
+            <li>SIREN&nbsp;: 790 453 757</li>
+            <li>Capital social&nbsp;: 50&nbsp;100 €</li>
+            <li>RCS Avignon</li>
+            <li>Qualibat RGE certifié</li>
+          </ul>
+          <ul class="footer__links" role="list">
+            <li><a href="#" class="footer__link">Mentions légales</a></li>
+            <li><a href="#" class="footer__link">Politique de confidentialité</a></li>
+            <li><a href="#" class="footer__link">CGV</a></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <div class="premium-container">
+        <p class="footer__copyright">
+          &copy; 2026 Bat Iso-84 &nbsp;&middot;&nbsp; Artisans multiservices en Provence &nbsp;&middot;&nbsp;
+          Tous droits réservés
+        </p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

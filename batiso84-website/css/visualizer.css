@@ -1,0 +1,449 @@
+/* ═══════════════════════════════════════════════════════════════
+   visualizer.css — Renovation Cost Estimator
+   Bat Iso-84, Vaucluse
+   Relies on CSS variables defined in the parent design system.
+═══════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────
+   Section wrapper
+───────────────────────────────────────────── */
+
+.visualizer {
+  padding: var(--space-lg) 0;
+  /* Warm plaster background with a very subtle diagonal grain */
+  background-color: var(--plaster);
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 2px,
+      rgba(27, 26, 23, 0.018) 2px,
+      rgba(27, 26, 23, 0.018) 4px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 2px,
+      rgba(27, 26, 23, 0.012) 2px,
+      rgba(27, 26, 23, 0.012) 4px
+    );
+  overflow: hidden; /* contain the scroll-reveal transform */
+}
+
+/* ─────────────────────────────────────────────
+   Header
+───────────────────────────────────────────── */
+
+.viz-header {
+  text-align: center;
+  margin-bottom: var(--space-md);
+}
+
+.viz-header h2 {
+  color: var(--stone-900);
+  margin-bottom: 0.5rem;
+}
+
+.viz-header p {
+  color: var(--stone-700);
+  opacity: 0.8;
+  font-size: var(--text-body);
+  max-width: 42ch;
+  margin: 0 auto;
+}
+
+/* ─────────────────────────────────────────────
+   Workspace grid
+───────────────────────────────────────────── */
+
+.viz-workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  align-items: stretch;
+}
+
+@media (max-width: 768px) {
+  .viz-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Upload zone
+───────────────────────────────────────────── */
+
+.viz-upload {
+  aspect-ratio: 4 / 3;
+  border: 2px dashed rgba(62, 58, 51, 0.45); /* --stone-700 @ 45% */
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.5);
+  transition: border-color 0.2s ease, background 0.2s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.viz-upload:hover,
+.viz-upload--drag {
+  border-color: var(--terracotta);
+  background: rgba(194, 88, 46, 0.05);
+}
+
+.viz-upload--drag {
+  border-style: solid;
+}
+
+/* Hide the native file input — the whole zone is the click target */
+#viz-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* ─────────────────────────────────────────────
+   Placeholder
+───────────────────────────────────────────── */
+
+.viz-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: var(--space-sm);
+  pointer-events: none; /* clicks pass through to the zone */
+  z-index: 2;
+}
+
+.viz-placeholder span {
+  font-size: 3rem;
+  line-height: 1;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.viz-upload:hover .viz-placeholder span,
+.viz-upload--drag .viz-placeholder span {
+  transform: scale(1.12);
+}
+
+.viz-placeholder p {
+  font-size: var(--text-body);
+  color: var(--stone-700);
+  text-align: center;
+  margin: 0;
+  opacity: 0.75;
+  max-width: 22ch;
+}
+
+/* ─────────────────────────────────────────────
+   Uploaded image
+───────────────────────────────────────────── */
+
+#viz-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+  z-index: 3;
+  display: block; /* JS controls visibility */
+}
+
+/* ─────────────────────────────────────────────
+   Badges overlay
+───────────────────────────────────────────── */
+
+.viz-badges {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  z-index: 4;
+  pointer-events: none;
+  max-width: calc(100% - 2rem);
+}
+
+.viz-badge {
+  display: inline-flex;
+  align-items: center;
+  background: var(--terracotta);
+  color: #fff;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: var(--text-small);
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+  /* Transition driven by JS inline style changes */
+  transition: opacity 0.28s ease, transform 0.28s ease;
+  white-space: nowrap;
+}
+
+/* ─────────────────────────────────────────────
+   Controls panel
+───────────────────────────────────────────── */
+
+.viz-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--white);
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.viz-panel h3 {
+  color: var(--stone-900);
+  margin: 0 0 0.25rem;
+  font-size: var(--text-h2);
+}
+
+/* ─────────────────────────────────────────────
+   Service checkboxes
+───────────────────────────────────────────── */
+
+.viz-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.vcheck {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border-left: 3px solid transparent;
+  /* Smooth the border-left so unchecked state has no visible left border */
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.vcheck:hover {
+  background: var(--plaster);
+}
+
+/* Checked state — target the label when its child input is checked */
+.vcheck:has(input:checked) {
+  background: rgba(194, 88, 46, 0.08);
+  border-left-color: var(--terracotta);
+}
+
+/* Fallback for browsers without :has() — JS adds .vcheck--checked via the change event
+   (If you need to support older browsers, wire this up in JS; modern browsers are fine.) */
+.vcheck--checked {
+  background: rgba(194, 88, 46, 0.08);
+  border-left-color: var(--terracotta);
+}
+
+/* Hide the native checkbox */
+.vcheck input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Custom checkbox box */
+.vcheck__box {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--stone-700);
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  position: relative;
+}
+
+/* Checkmark via ::after */
+.vcheck__box::after {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 9px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg) translate(-0.5px, -1px);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+/* Checked state for the custom box — pure CSS via :has() */
+.vcheck:has(input:checked) .vcheck__box {
+  background: var(--terracotta);
+  border-color: var(--terracotta);
+}
+
+.vcheck:has(input:checked) .vcheck__box::after {
+  opacity: 1;
+}
+
+/* Fallback classes for JS-driven checked state */
+.vcheck--checked .vcheck__box {
+  background: var(--terracotta);
+  border-color: var(--terracotta);
+}
+
+.vcheck--checked .vcheck__box::after {
+  opacity: 1;
+}
+
+.vcheck__name {
+  flex: 1;
+  font-weight: 500;
+  color: var(--stone-900);
+  font-size: var(--text-body);
+}
+
+.vcheck__range {
+  font-size: var(--text-small);
+  color: var(--stone-700);
+  opacity: 0.65;
+  white-space: nowrap;
+}
+
+/* ─────────────────────────────────────────────
+   Result panel
+───────────────────────────────────────────── */
+
+.viz-result {
+  background: var(--stone-900);
+  color: var(--white);
+  border-radius: 8px;
+  padding: var(--space-sm);
+  display: flex;           /* controlled by JS (none / flex) */
+  flex-direction: column;
+  gap: 0.75rem;
+  /* Fade-in / fade-out */
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  transform: translateY(8px);
+}
+
+.viz-result.viz-result--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.viz-result__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  font-size: var(--text-body);
+}
+
+.viz-result__row span {
+  opacity: 0.7;
+  font-size: 0.92em;
+}
+
+.viz-result__row strong {
+  font-size: 1.2em;
+  white-space: nowrap;
+}
+
+/* Aid row (savings) */
+.viz-result__row--green strong {
+  color: #7bc47f;
+}
+
+/* Net cost (highlighted) */
+.viz-result__row--big {
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  margin-top: 0.25rem;
+}
+
+.viz-result__row--big span {
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.viz-result__row--big strong {
+  font-size: var(--text-h2);
+  color: var(--ochre);
+  font-weight: 700;
+}
+
+.viz-disclaimer {
+  font-size: var(--text-small);
+  opacity: 0.45;
+  font-style: italic;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ─────────────────────────────────────────────
+   CTA button
+───────────────────────────────────────────── */
+
+.viz-cta {
+  width: 100%;
+  justify-content: center;
+  font-size: 1.1rem;
+  margin-top: auto;
+  text-align: center;
+}
+
+/* ─────────────────────────────────────────────
+   Responsive tweaks
+───────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .vcheck {
+    padding: 0.75rem 0.75rem;
+    gap: 0.6rem;
+  }
+
+  .vcheck__range {
+    display: none; /* avoid cramping on very small screens */
+  }
+
+  .viz-result__row--big strong {
+    font-size: 1.4rem; /* cap in case --text-h2 is large on mobile */
+  }
+
+  .viz-panel {
+    padding: var(--space-xs);
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Reduced-motion preference
+───────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .visualizer,
+  .viz-result,
+  .viz-badge,
+  .vcheck,
+  .vcheck__box,
+  .viz-upload,
+  .viz-placeholder span {
+    transition: none !important;
+    animation: none !important;
+  }
+}
